@@ -46,6 +46,13 @@ class SubCategory(models.Model):
 
 
 class Article(models.Model):
+    class SizeChoices(models.TextChoices):
+        SMALL = 'S', 'Small'
+        MEDIUM = 'M', 'Medium'  
+        LARGE = 'L', 'Large'
+        EXTRA_LARGE = 'XL', 'Extra Large'
+        DOUBLE_EXTRA_LARGE = 'XXL', 'Double Extra Large'
+    
     name = models.CharField(max_length=200)
     picture = models.ImageField(upload_to='articles/', blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='articles')
@@ -59,6 +66,10 @@ class Article(models.Model):
     number_of_sales_all_time = models.PositiveIntegerField(default=0)
     number_of_sales_this_month = models.PositiveIntegerField(default=0)
     colors_available = models.JSONField(default=list, blank=True)
+    sizes_available = models.JSONField(
+        default=list,
+        help_text='Available sizes for this article'
+    )
     show_on_landing_page = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

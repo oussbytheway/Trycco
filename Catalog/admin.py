@@ -66,7 +66,7 @@ class SubCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
-    list_display = ['picture_preview', 'name', 'category_info', 'price', 'sales_all_time', 'sales_this_month', 'colors_preview', 'tags_display', 'show_on_landing_page']
+    list_display = ['picture_preview', 'name', 'category_info', 'price', 'sales_all_time', 'sales_this_month', 'colors_preview', 'sizes_preview', 'tags_display', 'show_on_landing_page']
     list_editable = ['show_on_landing_page']
     list_filter = ['category', 'subcategory', 'tags', 'price']
     search_fields = ['name']
@@ -81,9 +81,9 @@ class ArticleAdmin(admin.ModelAdmin):
         ('Categorization', {
             'fields': ('category', 'subcategory', 'tags')
         }),
-        ('Inventory & Colors', {
-            'fields': ('colors_available',),
-            'description': 'Enter colors as a JSON list, e.g., ["Red", "Blue", "Green"]'
+        ('Inventory', {
+            'fields': ('colors_available', 'sizes_available'),
+            'description': 'Enter colors as a JSON list, e.g., ["Red", "Blue", "Green"]. Enter sizes as a JSON list, e.g., ["S", "M", "L"]'
         }),
         ('Statistics', {
             'fields': ('created_at', 'updated_at', 'number_of_sales_all_time', 'number_of_sales_this_month'),
@@ -140,6 +140,20 @@ class ArticleAdmin(admin.ModelAdmin):
             return mark_safe(result)
         return 'No colors'
     colors_preview.short_description = 'Available Colors'
+    
+    def sizes_preview(self, obj):
+        if obj.sizes_available:
+            sizes = obj.sizes_available[:5]  # Show all sizes (max 5)
+            size_badges = []
+            for size in sizes:
+                size_badges.append(f'<span style="background-color: #e9ecef; color: #495057; padding: 2px 6px; border-radius: 3px; margin-right: 3px; font-size: 11px; border: 1px solid #dee2e6;">{size}</span>')
+            
+            result = ''.join(size_badges)
+            if len(obj.sizes_available) > 5:
+                result += f'<span style="color: #666;">+{len(obj.sizes_available) - 5} more</span>'
+            return mark_safe(result)
+        return 'No sizes'
+    sizes_preview.short_description = 'Available Sizes'
     
     def tags_display(self, obj):
         tags = obj.tags.all()[:3]  # Show first 3 tags
@@ -212,7 +226,6 @@ class OrderAdmin(admin.ModelAdmin):
         """
         return mark_safe(summary)
     order_summary.short_description = 'Order Summary'
-
 
 # Admin site customization
 admin.site.site_header = 'Trycco Administration'
