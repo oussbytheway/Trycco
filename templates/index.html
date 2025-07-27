@@ -5,8 +5,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TRYCCO - Find Your Vibe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="{% static 'styles.css' %}" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
   </head>
   <body>
     <!-- Header -->
@@ -48,24 +48,23 @@
           <h2 class="section-title">New drops !!</h2>
           <div class="carousel-container">
             <div class="carousel" id="carousel">
-              <div class="product-card">
-                <img src="{% static 'images/opeth-shirt.png' %}" alt="Band T-shirt 1" />
-              </div>
-              <div class="product-card">
-                <img src="{% static 'images/opeth-shirt.png' %}" alt="AC/DC T-shirt" />
-              </div>
-              <div class="product-card">
-                <img src="{% static 'images/opeth-shirt.png' %}" alt="Vintage Band T-shirt" />
-              </div>
-              <div class="product-card">
-                <img src="{% static 'images/opeth-shirt.png' %}" alt="Rock Band T-shirt" />
-              </div>
-              <div class="product-card">
-                <img src="{% static 'images/opeth-shirt.png' %}" alt="Metal Band T-shirt" />
-              </div>
+              {% for article in carousel_articles %}
+                <div class="product-card">
+                  <img src="{{ article.picture.url }}" alt="{{ article.name }}" />
+                  <h3>{{ article.name }}</h3>
+                  <p>{{ article.price }} DA</p>
+                </div>
+              {% endfor %}
+              <!-- See More Card -->
               <div class="see-more-card">
                 <span>See more</span>
               </div>
+            </div>
+
+            <!-- Navigation Arrows -->
+            <div class="carousel-nav">
+              <button class="carousel-btn prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
+              <button class="carousel-btn next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
             </div>
           </div>
         </div>
@@ -80,44 +79,46 @@
             <div class="line"></div>
           </div>
           <div class="category-buttons">
-            <button class="category-btn">Movies</button>
-            <button class="category-btn">Sports</button>
-            <button class="category-btn">Music</button>
-            <button class="category-btn">Anime</button>
-            <button class="category-btn">Art</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Contact Section -->
-      <section class="contact">
-        <div class="container">
-          <h2 class="contact-title">
-            <span class="line">REACH OUT FOR</span>
-            <span class="line">INQUIRIES</span>
-          </h2>
-          <h3 class="contact-subtitle">AND PARTNERSHIPS</h3>
-
-          <div class="contact-info">
-            <div class="contact-item">
-              <h4>PHONE</h4>
-              <p>(123) 456-7890</p>
-            </div>
-            <div class="contact-item">
-              <h4>EMAIL</h4>
-              <p>hello@reallygreatsite.com</p>
-            </div>
-            <div class="contact-item">
-              <h4>SOCIAL</h4>
-              <div class="social-icons">
-                <a href="#" aria-label="Facebook">f</a>
-                <a href="#" aria-label="Instagram">📷</a>
-              </div>
-            </div>
+            {% for category in categories %}
+              <button class="category-btn">{{ category.name }}</button>
+            {% endfor %}
           </div>
         </div>
       </section>
     </main>
+
+    <section class="contact">
+      <div class="container">
+        <h2 class="contact-title">
+          <span class="line">REACH OUT FOR</span>
+          <span class="line">INQUIRIES</span>
+        </h2>
+        <h3 class="contact-subtitle">AND PARTNERSHIPS</h3>
+
+        <div class="contact-info">
+          <div class="contact-item">
+            <h4>PHONE</h4>
+            <p>(123) 456-7890</p>
+          </div>
+          <div class="contact-item">
+            <h4>EMAIL</h4>
+            <p>hello@reallygreatsite.com</p>
+          </div>
+        </div> <!-- Close contact-info here -->
+
+        <!-- Moved contact-footer outside contact-info -->
+        <div class="contact-footer">
+          <div class="social-icons">
+            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+            <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+            <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest-p"></i></a>
+          </div>
+          <p>© 2025 TRYCCO. All rights reserved. Find Your Vibe.</p>
+        </div>
+      </div>
+    </section>
 
     <script src="{% static 'script.js' %}"></script>
   </body>

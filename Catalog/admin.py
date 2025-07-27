@@ -13,9 +13,9 @@ class TagAdmin(admin.ModelAdmin):
     ordering = ['name']
     
     def article_count(self, obj):
-        count = obj.article_set.count()
+        count = obj.articles.count()
         if count > 0:
-            url = reverse('admin:catalog_article_changelist') + f'?tags__id__exact={obj.id}'
+            url = reverse('admin:Catalog_article_changelist') + f'?tags__id__exact={obj.id}'
             return format_html('<a href="{}">{} articles</a>', url, count)
         return '0 articles'
     article_count.short_description = 'Articles Using This Tag'
@@ -29,7 +29,8 @@ class SubCategoryInline(admin.TabularInline):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'subcategory_count']
+    list_display = ['name', 'subcategory_count', 'article_count', 'show_on_landing_page']
+    list_editable = ['show_on_landing_page']
     search_fields = ['name']
     ordering = ['name']
     inlines = [SubCategoryInline]
@@ -37,49 +38,86 @@ class CategoryAdmin(admin.ModelAdmin):
     def subcategory_count(self, obj):
         return obj.subcategories.count()
     subcategory_count.short_description = 'Subcategories'
+    
+    def article_count(self, obj):
+        count = obj.articles.count()
+        if count > 0:
+            url = reverse('admin:Catalog_article_changelist') + f'?category__id__exact={obj.id}'
+            return format_html('<a href="{}">{} articles</a>', url, count)
+        return '0 articles'
+    article_count.short_description = 'Articles Using This Category'
 
 
 @admin.register(SubCategory)
 class SubCategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category']
+    list_display = ['name', 'category', 'article_count']
     list_filter = ['category']
     search_fields = ['name', 'category__name']
     ordering = ['category__name', 'name']
+    
+    def article_count(self, obj):
+        count = obj.articles.count()
+        if count > 0:
+            url = reverse('admin:Catalog_article_changelist') + f'?subcategory__id__exact={obj.id}'
+            return format_html('<a href="{}">{} articles</a>', url, count)
+        return '0 articles'
+    article_count.short_description = 'Articles Using This Subcategory'
 
 
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
-    list_display = ['name', 'price', 'sales_all_time', 'sales_this_month', 'colors_preview', 'tags_display']
-    list_filter = ['tags', 'price']
+    list_display = ['picture_preview', 'name', 'category_info', 'price', 'sales_all_time', 'sales_this_month', 'colors_preview', 'tags_display', 'show_on_landing_page']
+    list_editable = ['show_on_landing_page']
+    list_filter = ['category', 'subcategory', 'tags', 'price']
     search_fields = ['name']
     filter_horizontal = ['tags']
-    ordering = ['-number_of_sales_all_time']
-    readonly_fields = ['number_of_sales_all_time', 'number_of_sales_this_month']
+    ordering = ['-updated_at', '-created_at', '-number_of_sales_all_time']
+    readonly_fields = ['updated_at', 'created_at', 'number_of_sales_all_time', 'number_of_sales_this_month']
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'price', 'tags')
+            'fields': ('name', 'picture', 'price', 'show_on_landing_page')
+        }),
+        ('Categorization', {
+            'fields': ('category', 'subcategory', 'tags')
         }),
         ('Inventory & Colors', {
             'fields': ('colors_available',),
             'description': 'Enter colors as a JSON list, e.g., ["Red", "Blue", "Green"]'
         }),
-        ('Sales Statistics', {
-            'fields': ('number_of_sales_all_time', 'number_of_sales_this_month'),
+        ('Statistics', {
+            'fields': ('created_at', 'updated_at', 'number_of_sales_all_time', 'number_of_sales_this_month'),
             'classes': ('collapse',)
         }),
     )
     
+    def picture_preview(self, obj):
+        if obj.picture:
+            return format_html(
+                '<img src="{}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />',
+                obj.picture.url
+            )
+        return format_html('<div style="width: 50px; height: 50px; border-radius: 50%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">No Image</div>')
+    picture_preview.short_description = 'Picture'
+    
+    def category_info(self, obj):
+        if obj.category:
+            if obj.subcategory:
+                return format_html('<strong>{}</strong><br><small>{}</small>', obj.category.name, obj.subcategory.name)
+            return obj.category.name
+        return 'No category'
+    category_info.short_description = 'Category'
+    
     def sales_all_time(self, obj):
         if obj.number_of_sales_all_time > 0:
-            url = reverse('admin:catalog_order_changelist') + f'?article__id__exact={obj.id}'
+            url = reverse('admin:Catalog_order_changelist') + f'?article__id__exact={obj.id}'
             return format_html('<a href="{}">{}</a>', url, obj.number_of_sales_all_time)
         return '0'
     sales_all_time.short_description = 'Total Sales'
     
     def sales_this_month(self, obj):
         if obj.number_of_sales_this_month > 0:
-            url = reverse('admin:catalog_order_changelist') + f'?article__id__exact={obj.id}'
+            url = reverse('admin:Catalog_order_changelist') + f'?article__id__exact={obj.id}'
             return format_html('<a href="{}">{}</a>', url, obj.number_of_sales_this_month)
         return '0'
     sales_this_month.short_description = 'Monthly Sales'
@@ -88,8 +126,13 @@ class ArticleAdmin(admin.ModelAdmin):
         if obj.colors_available:
             colors = obj.colors_available[:3]  # Show first 3 colors
             color_badges = []
+            light_colors = ['white', 'yellow', 'lightgray', 'lightgrey', 'cyan', 'lime', 'silver']
             for color in colors:
-                color_badges.append(f'<span style="background-color: {color.lower()}; color: white; padding: 2px 6px; border-radius: 3px; margin-right: 3px; font-size: 11px;">{color}</span>')
+                if color.lower() in light_colors:
+                    text_color = "black"
+                else:
+                    text_color = "white"
+                color_badges.append(f'<span style="background-color: {color.lower()}; color: {text_color}; padding: 2px 6px; border-radius: 3px; margin-right: 3px; font-size: 11px;">{color}</span>')
             
             result = ''.join(color_badges)
             if len(obj.colors_available) > 3:

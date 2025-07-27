@@ -19,6 +19,7 @@ class Tag(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    show_on_landing_page = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Category"
@@ -47,6 +48,8 @@ class SubCategory(models.Model):
 class Article(models.Model):
     name = models.CharField(max_length=200)
     picture = models.ImageField(upload_to='articles/', blank=True, null=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='articles')
+    subcategory = models.ForeignKey(SubCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='articles')
     tags = models.ManyToManyField(Tag, blank=True, related_name='articles')
     price = models.DecimalField(
         max_digits=10, 
@@ -56,6 +59,7 @@ class Article(models.Model):
     number_of_sales_all_time = models.PositiveIntegerField(default=0)
     number_of_sales_this_month = models.PositiveIntegerField(default=0)
     colors_available = models.JSONField(default=list, blank=True)
+    show_on_landing_page = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
