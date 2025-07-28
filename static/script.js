@@ -59,10 +59,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('productSearch');
     
     if (productsGrid) {
-        // Infinite Scroll Implementation
+        // Infinite Scroll State Management
         let isLoading = false;
         let currentPage = 1;
         let hasMoreProducts = true;
+        let productsPerPage = 9; // Adjust based on your preference
+        let scrollTimeout;
         
         function loadMoreProducts() {
             if (isLoading || !hasMoreProducts) return;
@@ -70,34 +72,89 @@ document.addEventListener('DOMContentLoaded', function() {
             isLoading = true;
             loadingIndicator.style.display = 'block';
             
-            // Simulate API call - replace with actual Django endpoint
-            setTimeout(() => {
-                // Simulate end of products after 3 pages
-                if (currentPage >= 3) {
-                    hasMoreProducts = false;
-                    loadingIndicator.style.display = 'none';
-                    noMoreProducts.style.display = 'block';
-                } else {
-                    // Add mock products (replace with actual data from Django)
-                    const mockProducts = generateMockProducts(6);
-                    mockProducts.forEach(product => {
+            console.log(`Loading page ${currentPage + 1}`);
+            
+            // Make AJAX request to Django backend
+            fetch(`/load-more-products/?page=${currentPage + 1}&per_page=${productsPerPage}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.products && data.products.length > 0) {
+                    console.log(`Loaded ${data.products.length} products for page ${currentPage + 1}`);
+                    
+                    // Add new products to grid
+                    data.products.forEach(product => {
                         productsGrid.appendChild(createProductCard(product));
                     });
+                    
                     currentPage++;
-                    loadingIndicator.style.display = 'none';
+                    
+                    // Smooth fade-in animation for new products
+                    animateNewProducts(data.products.length);
+                } else {
+                    console.log('No more products available');
                 }
+                
+                // Use server response to determine if more products exist
+                hasMoreProducts = data.has_more || false;
+                
+                if (!hasMoreProducts) {
+                    noMoreProducts.style.display = 'block';
+                    console.log('Reached end of products');
+                }
+                
+                loadingIndicator.style.display = 'none';
                 isLoading = false;
-            }, 1000);
+            })
+            .catch(error => {
+                console.error('Failed to load products:', error.message);
+                
+                // Show user-friendly error message
+                showErrorMessage();
+                
+                loadingIndicator.style.display = 'none';
+                isLoading = false;
+            });
         }
         
         function createProductCard(product) {
             const card = document.createElement('div');
             card.className = 'product-card-listing';
+            card.dataset.productId = product.id;
+            
+            // Handle product image
+            const imageHtml = product.picture 
+                ? `<img src="${product.picture}" alt="${product.name}" class="product-image">`
+                : `<div class="product-image-placeholder"><i class="fas fa-image"></i></div>`;
+            
+            // Handle colors
+            const colorsHtml = product.colors_available && product.colors_available.length > 0
+                ? product.colors_available.map(color => `<span class="color-dot" style="background-color: ${color};" title="${color}"></span>`).join('')
+                : '';
+            
+            // Handle sizes
+            const sizesHtml = product.sizes_available && product.sizes_available.length > 0
+                ? product.sizes_available.map(size => `<span class="size-tag">${size}</span>`).join('')
+                : '';
+            
+            // Handle tags
+            const tagsHtml = product.tags && product.tags.length > 0
+                ? `<div class="available-tags">${product.tags.map(tag => `<span class="tag-pill">${tag.name}</span>`).join('')}</div>`
+                : '';
+            
             card.innerHTML = `
                 <div class="product-image-container">
-                    <div class="product-image-placeholder">
-                        <i class="fas fa-image"></i>
-                    </div>
+                    ${imageHtml}
                     <div class="product-overlay">
                         <button class="quick-view-btn" data-product-id="${product.id}">
                             <i class="fas fa-eye"></i>
@@ -108,50 +165,120 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h3 class="product-name">${product.name}</h3>
                     <p class="product-price">${product.price} DA</p>
                     <div class="product-options">
-                        <div class="available-colors">
-                            ${product.colors.map(color => `<span class="color-dot" style="background-color: ${color};" title="${color}"></span>`).join('')}
-                        </div>
-                        <div class="available-sizes">
-                            ${product.sizes.map(size => `<span class="size-tag">${size}</span>`).join('')}
-                        </div>
+                        <div class="available-colors">${colorsHtml}</div>
+                        <div class="available-sizes">${sizesHtml}</div>
+                        ${tagsHtml}
                     </div>
                 </div>
             `;
             return card;
         }
         
-        function generateMockProducts(count) {
-            const products = [];
-            const names = ['Urban Tee', 'Street Style', 'Classic Fit', 'Modern Cut', 'Retro Vibe', 'Minimalist'];
-            const colors = ['#000000', '#ffffff'];
-            const sizes = ['S', 'M', 'L', 'XL'];
-            
-            for (let i = 0; i < count; i++) {
-                products.push({
-                    id: Date.now() + i,
-                    name: names[Math.floor(Math.random() * names.length)],
-                    price: Math.floor(Math.random() * 5000) + 1000,
-                    colors: [colors[Math.floor(Math.random() * colors.length)]],
-                    sizes: sizes.slice(0, Math.floor(Math.random() * 3) + 1)
-                });
-            }
-            return products;
+        function animateNewProducts(count) {
+            const newCards = productsGrid.querySelectorAll('.product-card-listing:nth-last-child(-n+' + count + ')');
+            newCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 50); // Stagger animation
+            });
         }
         
-        // Scroll listener for infinite scroll
+        function showErrorMessage() {
+            // Remove any existing error messages
+            const existingError = document.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'error-message';
+            errorMessage.style.cssText = `
+                text-align: center; 
+                padding: 20px; 
+                margin: 20px 0; 
+                background-color: #fee; 
+                border: 1px solid #fcc; 
+                border-radius: 5px; 
+                color: #c33;
+            `;
+            errorMessage.innerHTML = `
+                <p>Failed to load more products. Please try again.</p>
+                <button onclick="location.reload()" style="
+                    padding: 8px 16px; 
+                    background: #007cba; 
+                    color: white; 
+                    border: none; 
+                    border-radius: 4px; 
+                    cursor: pointer;
+                ">Retry</button>
+            `;
+            
+            productsGrid.parentNode.insertBefore(errorMessage, loadingIndicator);
+            
+            // Auto-remove error message after 10 seconds
+            setTimeout(() => {
+                if (errorMessage.parentNode) {
+                    errorMessage.remove();
+                }
+            }, 10000);
+        }
+        
+        function shouldLoadMore() {
+            if (isLoading || !hasMoreProducts) return false;
+            
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+            
+            // Load when user is within 300px of bottom
+            return scrollTop + windowHeight >= documentHeight - 300;
+        }
+        
+        // Debounced scroll listener for infinite scroll
         window.addEventListener('scroll', () => {
-            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+            
+            scrollTimeout = setTimeout(() => {
+                if (shouldLoadMore()) {
+                    loadMoreProducts();
+                }
+            }, 100); // Debounce by 100ms
+        });
+        
+        // Initialize: Check if we need to load more on page load (in case content doesn't fill screen)
+        setTimeout(() => {
+            if (shouldLoadMore()) {
+                console.log('Initial screen not filled, loading more products');
                 loadMoreProducts();
             }
-        });
+        }, 100);
     }
     
     // Search functionality for products page
     if (searchInput) {
+        let searchTimeout;
+        
         searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            // Implement search logic here - filter products or make API call
-            console.log('Searching for:', searchTerm);
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            // Clear previous timeout
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+            
+            // Debounce search to avoid excessive API calls
+            searchTimeout = setTimeout(() => {
+                if (searchTerm.length > 2 || searchTerm.length === 0) {
+                    console.log('Search term:', searchTerm || '(cleared)');
+                    // Implement search logic here - filter products or make API call
+                }
+            }, 300);
         });
     }
     
@@ -159,8 +286,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(e) {
         if (e.target.closest('.quick-view-btn')) {
             const productId = e.target.closest('.quick-view-btn').dataset.productId;
+            console.log('Quick view requested for product:', productId);
             // Implement quick view modal or redirect to product detail
-            console.log('Quick view product:', productId);
         }
     });
 });

@@ -30,9 +30,7 @@
               <p>{{ article.price }} DA</p>
             </div>
           {% endfor %}
-          <div class="see-more-card">
-            <span>See more</span>
-          </div>
+          <a href="{% url 'products' %}" class="see-more-card"><span>See more</span></a>
         </div>
 
         <div class="carousel-nav">

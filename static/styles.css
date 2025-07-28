@@ -36,6 +36,8 @@ body {
     font-size: 24px;
     font-weight: 700;
     letter-spacing: 2px;
+    text-decoration: none;
+    color: #f0f0f0;
 }
 
 .search-container {
@@ -177,10 +179,14 @@ body {
     transition: background 0.3s ease;
     font-weight: 600;
     min-width: 200px;
+    text-decoration: none;
+    color: white;
 }
 
 .see-more-card:hover {
     background: #333;
+    text-decoration: none;
+    color: white;
 }
 
 /* Carousel Navigation Arrows */
