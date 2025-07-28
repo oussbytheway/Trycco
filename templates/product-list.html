@@ -44,7 +44,7 @@
 
         <div class="products-grid" id="productsGrid">
           {% for product in products %}
-            <div class="product-card-listing" data-product-id="{{ product.id }}">
+            <a href="{% url 'product_detail' product.id %}" class="product-card-listing" data-product-id="{{ product.id }}">
               <div class="product-image-container">
                 {% if product.picture %}
                   <img src="{{ product.picture.url }}" alt="{{ product.name }}" class="product-image" />
@@ -81,7 +81,7 @@
                   {% endif %}
                 </div>
               </div>
-            </div>
+            </a>
           {% endfor %}
         </div>
 

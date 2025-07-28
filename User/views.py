@@ -4,6 +4,8 @@ from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_http_methods
 import logging
+from django.shortcuts import render, get_object_or_404
+from django.http import Http404
 
 logger = logging.getLogger(__name__)
 
@@ -67,3 +69,25 @@ def products(request):
         'tags': tags,
         'has_more': page_obj.has_next()  # Pass info about more products
     })
+
+def product_detail(request, id):
+    """
+    View to display detailed information about a specific product
+    """
+    try:
+        # Get the product with related data to avoid additional queries
+        product = Article.objects.select_related('category', 'subcategory').prefetch_related('tags').get(id=id)
+    except Article.DoesNotExist:
+        raise Http404("Product not found")
+    
+    # You might want to get related products for recommendations
+    related_products = Article.objects.filter(
+        category=product.category
+    ).exclude(id=product.id)[:4]  # Get 4 related products
+    
+    context = {
+        'product': product,
+        'related_products': related_products,
+    }
+    
+    return render(request, 'product-detail.html', context)
