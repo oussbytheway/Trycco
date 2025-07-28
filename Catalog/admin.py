@@ -193,7 +193,7 @@ class OrderAdmin(admin.ModelAdmin):
     order_number.short_description = 'Order #'
     
     def article_link(self, obj):
-        url = reverse('admin:catalog_article_change', args=[obj.article.pk])
+        url = reverse('admin:Catalog_article_change', args=[obj.article.pk])
         return format_html('<a href="{}">{}</a>', url, obj.article.name)
     article_link.short_description = 'Article'
     

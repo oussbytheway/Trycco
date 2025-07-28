@@ -843,10 +843,6 @@ body {
     transition: scale 0.3s ease;
 }
 
-.main-product-image:hover {
-    scale: 0.98;
-}
-
 .image-placeholder {
     width: 100%;
     height: 600px;
@@ -870,6 +866,83 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
+}
+
+/* Image Action Buttons */
+.image-actions {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    color: #1a1a1a;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    backdrop-filter: blur(10px);
+}
+
+.action-btn:hover {
+    background: white;
+    transform: scale(1.1);
+}
+
+.action-btn:active {
+    transform: scale(0.95);
+}
+
+/* Image Modal */
+.image-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    margin: auto;
+    display: block;
+    width: 80%;
+    max-width: 700px;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+.close {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
 }
 
 /* Product Info Section */
@@ -1202,6 +1275,10 @@ body {
     .order-form {
         grid-template-columns: 1fr;
     }
+
+    .modal-content {
+        width: 90%;
+    }
 }
 
 @media (max-width: 768px) {
@@ -1243,6 +1320,28 @@ body {
     .size-options {
         justify-content: center;
     }
+
+    .image-actions {
+        bottom: 15px;
+        right: 15px;
+    }
+
+    .action-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+    }
+
+    .modal-content {
+        width: 95%;
+        padding-top: 50px;
+    }
+
+    .close {
+        top: 10px;
+        right: 20px;
+        font-size: 35px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1265,5 +1364,17 @@ body {
 
     .product-price {
         font-size: 1.8rem;
+    }
+
+    .image-actions {
+        bottom: 10px;
+        right: 10px;
+        gap: 8px;
+    }
+
+    .action-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 12px;
     }
 }

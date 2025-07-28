@@ -48,15 +48,11 @@
               </div>
             {% endif %}
             <div class="image-badge">Available</div>
-            
+
             <!-- Image Action Buttons -->
             <div class="image-actions">
-              <button class="action-btn view-btn" onclick="viewImage()" title="View Full Size">
-                <i class="fas fa-eye"></i>
-              </button>
-              <button class="action-btn download-btn" onclick="downloadImage()" title="Download Image">
-                <i class="fas fa-download"></i>
-              </button>
+              <button class="action-btn view-btn" onclick="viewImage()" title="View Full Size"><i class="fas fa-eye"></i></button>
+              <button class="action-btn download-btn" onclick="downloadImage()" title="Download Image"><i class="fas fa-download"></i></button>
             </div>
           </div>
         </div>
@@ -90,11 +86,7 @@
                 <label class="option-label">Colors Available</label>
                 <div class="color-options">
                   {% for color in product.colors_available %}
-                    <div class="color-option {% if forloop.first %}selected{% endif %}" 
-                         style="background-color: {{ color }};" 
-                         data-color="{{ color }}" 
-                         title="{{ color }}"
-                         onclick="selectColor(this)"></div>
+                    <div class="color-option {% if forloop.first %}selected{% endif %}" style="background-color: {{ color }};" data-color="{{ color }}" title="{{ color }}" onclick="selectColor(this)"></div>
                   {% endfor %}
                 </div>
               </div>
@@ -105,9 +97,7 @@
                 <label class="option-label">Sizes Available</label>
                 <div class="size-options">
                   {% for size in product.sizes_available %}
-                    <div class="size-option {% if size == 'M' %}selected{% endif %}" 
-                         data-size="{{ size }}"
-                         onclick="selectSize(this)">{{ size }}</div>
+                    <div class="size-option {% if size == 'M' %}selected{% endif %}" data-size="{{ size }}" onclick="selectSize(this)">{{ size }}</div>
                   {% endfor %}
                 </div>
               </div>
@@ -150,7 +140,7 @@
             <label class="form-label">Size</label>
             <select name="size" class="form-select" id="sizeSelect" onchange="updateSummary()" required>
               {% for size in product.sizes_available %}
-                <option value="{{ size }}" {% if size == 'M' %}selected{% endif %}>{{ size }}</option>
+                <option value="{{ size }}" class="{% if size == 'M' %}selected{% endif %}">{{ size }}</option>
               {% endfor %}
             </select>
           </div>
@@ -159,7 +149,7 @@
             <label class="form-label">Color</label>
             <select name="color" class="form-select" id="colorSelect" onchange="updateSummary()" required>
               {% for color in product.colors_available %}
-                <option value="{{ color }}" {% if forloop.first %}selected{% endif %}>{{ color }}</option>
+                <option value="{{ color }}" class="{% if forloop.first %}selected{% endif %}">{{ color }}</option>
               {% endfor %}
             </select>
           </div>
@@ -196,103 +186,103 @@
   <!-- Image Modal -->
   <div id="imageModal" class="image-modal" onclick="closeModal()">
     <span class="close">&times;</span>
-    <img class="modal-content" id="modalImage">
+    <img class="modal-content" id="modalImage" />
   </div>
 
   <script>
     // Image viewing and downloading functions
     function viewImage() {
-      const modal = document.getElementById('imageModal');
-      const modalImg = document.getElementById('modalImage');
-      const productImg = document.getElementById('productImage');
-      
+      const modal = document.getElementById('imageModal')
+      const modalImg = document.getElementById('modalImage')
+      const productImg = document.getElementById('productImage')
+    
       if (productImg) {
-        modal.style.display = 'block';
-        modalImg.src = productImg.src;
+        modal.style.display = 'block'
+        modalImg.src = productImg.src
       }
     }
-
+    
     function closeModal() {
-      document.getElementById('imageModal').style.display = 'none';
+      document.getElementById('imageModal').style.display = 'none'
     }
-
+    
     function downloadImage() {
-      const productImg = document.getElementById('productImage');
+      const productImg = document.getElementById('productImage')
       if (productImg) {
-        const link = document.createElement('a');
-        link.href = productImg.src;
-        link.download = '{{ product.name|slugify }}.jpg';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const link = document.createElement('a')
+        link.href = productImg.src
+        link.download = '{{ product.name|slugify }}.jpg'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
       }
     }
-
+    
     // Quantity functions
     function decreaseQuantity() {
-      const quantityInput = document.getElementById('quantity');
+      const quantityInput = document.getElementById('quantity')
       if (quantityInput.value > 1) {
-        quantityInput.value = parseInt(quantityInput.value) - 1;
-        updateSummary();
+        quantityInput.value = parseInt(quantityInput.value) - 1
+        updateSummary()
       }
     }
-
+    
     function increaseQuantity() {
-      const quantityInput = document.getElementById('quantity');
-      quantityInput.value = parseInt(quantityInput.value) + 1;
-      updateSummary();
+      const quantityInput = document.getElementById('quantity')
+      quantityInput.value = parseInt(quantityInput.value) + 1
+      updateSummary()
     }
-
+    
     // Color and size selection functions
     function selectColor(element) {
-      document.querySelectorAll('.color-option').forEach(option => {
-        option.classList.remove('selected');
-      });
-      element.classList.add('selected');
-      
-      const colorSelect = document.getElementById('colorSelect');
-      const colorValue = element.getAttribute('data-color');
-      colorSelect.value = colorValue;
-      updateSummary();
+      document.querySelectorAll('.color-option').forEach((option) => {
+        option.classList.remove('selected')
+      })
+      element.classList.add('selected')
+    
+      const colorSelect = document.getElementById('colorSelect')
+      const colorValue = element.getAttribute('data-color')
+      colorSelect.value = colorValue
+      updateSummary()
     }
-
+    
     function selectSize(element) {
-      document.querySelectorAll('.size-option').forEach(option => {
-        option.classList.remove('selected');
-      });
-      element.classList.add('selected');
-      
-      const sizeSelect = document.getElementById('sizeSelect');
-      const sizeValue = element.getAttribute('data-size');
-      sizeSelect.value = sizeValue;
-      updateSummary();
+      document.querySelectorAll('.size-option').forEach((option) => {
+        option.classList.remove('selected')
+      })
+      element.classList.add('selected')
+    
+      const sizeSelect = document.getElementById('sizeSelect')
+      const sizeValue = element.getAttribute('data-size')
+      sizeSelect.value = sizeValue
+      updateSummary()
     }
-
+    
     // Update order summary
     function updateSummary() {
-      const quantity = document.getElementById('quantity').value;
-      const size = document.getElementById('sizeSelect').value;
-      const color = document.getElementById('colorSelect').value;
-      const price = document.getElementById('productPrice').getAttribute('data-price');
-      
-      document.getElementById('summaryQuantity').textContent = quantity;
-      document.getElementById('summarySize').textContent = size;
-      document.getElementById('summaryColor').textContent = color;
-      document.getElementById('summaryTotal').textContent = (price * quantity) + ' DA';
+      const quantity = document.getElementById('quantity').value
+      const size = document.getElementById('sizeSelect').value
+      const color = document.getElementById('colorSelect').value
+      const price = document.getElementById('productPrice').getAttribute('data-price')
+    
+      document.getElementById('summaryQuantity').textContent = quantity
+      document.getElementById('summarySize').textContent = size
+      document.getElementById('summaryColor').textContent = color
+      document.getElementById('summaryTotal').textContent = price * quantity + ' DA'
     }
-
+    
     // Close modal when clicking outside image
-    document.getElementById('imageModal').addEventListener('click', function(e) {
+    document.getElementById('imageModal').addEventListener('click', function (e) {
       if (e.target === this) {
-        closeModal();
+        closeModal()
       }
-    });
-
+    })
+    
     // Keyboard navigation for modal
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
-        closeModal();
+        closeModal()
       }
-    });
+    })
   </script>
 {% endblock %}

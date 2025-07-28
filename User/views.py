@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
 from Catalog.models import *
 from django.http import JsonResponse
 from django.core.paginator import Paginator
@@ -91,3 +92,39 @@ def product_detail(request, id):
     }
     
     return render(request, 'product-detail.html', context)
+
+def create_order(request, product_id):
+    """
+    View to handle order creation
+    """
+    if request.method == 'POST':
+        try:
+            # Get the product
+            product = get_object_or_404(Article, id=product_id)
+            
+            # Create the order
+            order = Order.objects.create(
+                customer_name=request.POST.get('customer_name'),
+                customer_email=request.POST.get('customer_email'),
+                customer_phone=request.POST.get('customer_phone'),
+                article=product,
+                number=int(request.POST.get('number', 1)),
+                size=request.POST.get('size'),
+                color=request.POST.get('color')
+            )
+            
+            # Add success message
+            messages.success(
+                request, 
+                f'Order #{order.pk} placed successfully! Total: {order.total_amount} DA'
+            )
+            
+            # Redirect back to product detail or to an order confirmation page
+            return redirect('product_detail', id=product_id)
+            
+        except Exception as e:
+            messages.error(request, 'There was an error placing your order. Please try again.')
+            return redirect('product_detail', id=product_id)
+    
+    # If not POST, redirect to product detail
+    return redirect('product_detail', id=product_id)
