@@ -7,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 import logging
 from django.shortcuts import render, get_object_or_404
 from django.http import Http404
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -95,35 +96,99 @@ def product_detail(request, id):
 
 def create_order(request, product_id):
     """
-    View to handle order creation
+    View to handle order creation with message handling
     """
     if request.method == 'POST':
         try:
             # Get the product
             product = get_object_or_404(Article, id=product_id)
             
-            # Create the order
-            order = Order.objects.create(
-                customer_name=request.POST.get('customer_name'),
-                customer_email=request.POST.get('customer_email'),
-                customer_phone=request.POST.get('customer_phone'),
-                article=product,
-                number=int(request.POST.get('number', 1)),
-                size=request.POST.get('size'),
-                color=request.POST.get('color')
-            )
+            # Validate form data
+            customer_name = request.POST.get('customer_name', '').strip()
+            customer_email = request.POST.get('customer_email', '').strip()
+            customer_phone = request.POST.get('customer_phone', '').strip()
+            size = request.POST.get('size', '').strip()
+            color = request.POST.get('color', '').strip()
             
-            # Add success message
-            messages.success(
-                request, 
-                f'Order #{order.pk} placed successfully! Total: {order.total_amount} DA'
-            )
+            try:
+                number = int(request.POST.get('number', 1))
+                if number <= 0:
+                    raise ValueError("Quantity must be greater than 0")
+            except (ValueError, TypeError):
+                messages.error(
+                    request, 
+                    'Invalid quantity specified. Please enter a valid number.'
+                )
+                return redirect('product_detail', id=product_id)
             
-            # Redirect back to product detail or to an order confirmation page
-            return redirect('product_detail', id=product_id)
+            # Basic validation
+            if not all([customer_name, customer_phone, size, color]):
+                messages.error(
+                    request, 
+                    'Please fill in all required fields before placing your order.'
+                )
+                return redirect('product_detail', id=product_id)
             
+            # Validate email format (basic check)
+            if '@' not in customer_email or '.' not in customer_email.split('@')[-1]:
+                messages.error(
+                    request, 
+                    'Please enter a valid email address.'
+                )
+                return redirect('product_detail', id=product_id)
+            
+            # Validate size and color are available for this product
+            if size not in product.sizes_available:
+                messages.error(
+                    request, 
+                    f'Size "{size}" is not available for this product.'
+                )
+                return redirect('product_detail', id=product_id)
+            
+            if color not in product.colors_available:
+                messages.error(
+                    request, 
+                    f'Color "{color}" is not available for this product.'
+                )
+                return redirect('product_detail', id=product_id)
+            
+            # Use database transaction for data integrity
+            with transaction.atomic():
+                # Create the order
+                order = Order.objects.create(
+                    customer_name=customer_name,
+                    customer_email=customer_email,
+                    customer_phone=customer_phone,
+                    article=product,
+                    number=number,
+                    size=size,
+                    color=color
+                )
+                
+                # Log successful order creation
+                logger.info(f"Order {order.pk} created successfully for customer {customer_name}")
+                
+                # Add success message with order details
+                messages.success(
+                    request, 
+                    f'🎉 Order #{order.pk} placed successfully! '
+                    f'Total: {order.total_amount} DA. '
+                    f'We will contact you at {customer_phone} to confirm delivery details.'
+                )
+                
+                # Redirect back to product detail
+                return redirect('product_detail', id=product_id)
+        
         except Exception as e:
-            messages.error(request, 'There was an error placing your order. Please try again.')
+            # Log the error for debugging
+            logger.error(f"Error creating order for product {product_id}: {str(e)}")
+            
+            # Add error message with contact information
+            messages.error(
+                request, 
+                'We encountered an issue while processing your order. '
+                'Please try again, or contact us directly to place your order manually.'
+            )
             return redirect('product_detail', id=product_id)
     
     # If not POST, redirect to product detail

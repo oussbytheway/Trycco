@@ -643,6 +643,7 @@ body {
 .social-icons a {
     display: flex;
     align-items: center;
+    text-decoration: none;
     justify-content: center;
     width: 45px;
     height: 45px;
@@ -681,15 +682,15 @@ body {
 /* Contact Footer */
 .contact-footer {
     border-top: 1px solid #ddd;
-    padding-top: 30px;
-    margin-top: 40px;
+    padding-top: 0px;
+    margin-top: 30px;
     text-align: center;
 }
 
 .contact-footer p {
     font-size: 14px;
     color: #666;
-    margin-top: 15px;
+    margin-top: 0px;
 }
 
 /* Responsive Design */
@@ -1376,5 +1377,233 @@ body {
         width: 35px;
         height: 35px;
         font-size: 12px;
+    }
+}
+
+
+/* Messages System */
+.messages-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 400px;
+}
+
+.message {
+    background: #2a2a2a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+    transform: translateX(100%);
+    opacity: 0;
+    animation: slideIn 0.4s ease forwards;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.message-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 20px;
+    padding-bottom: 15px;
+}
+
+.message-icon {
+    font-size: 20px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.message-text {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #fff;
+}
+
+.message-close {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.message-close:hover {
+    background: #333;
+    color: #fff;
+}
+
+.message-progress {
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.message-progress::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0;
+    background: currentColor;
+    border-radius: 3px;
+    transition: width linear;
+}
+
+.message-progress.animate-progress::before {
+    width: 100%;
+}
+
+/* Message Types */
+.message-success {
+    border-left: 4px solid #4CAF50;
+}
+
+.message-success .message-icon {
+    color: #4CAF50;
+}
+
+.message-success .message-progress::before {
+    background: #4CAF50;
+}
+
+.message-error {
+    border-left: 4px solid #f44336;
+}
+
+.message-error .message-icon {
+    color: #f44336;
+}
+
+.message-error .message-progress::before {
+    background: #f44336;
+}
+
+.message-warning {
+    border-left: 4px solid #FF9800;
+}
+
+.message-warning .message-icon {
+    color: #FF9800;
+}
+
+.message-warning .message-progress::before {
+    background: #FF9800;
+}
+
+.message-info {
+    border-left: 4px solid #2196F3;
+}
+
+.message-info .message-icon {
+    color: #2196F3;
+}
+
+.message-info .message-progress::before {
+    background: #2196F3;
+}
+
+/* Error Contact Information */
+.error-contact {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #333;
+}
+
+.error-contact p {
+    margin: 0;
+    font-size: 13px;
+    color: #ccc;
+}
+
+.error-contact strong {
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Animations */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Responsive Design for Messages */
+@media (max-width: 768px) {
+    .messages-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+
+    .message-content {
+        padding: 15px;
+        gap: 12px;
+    }
+
+    .message-icon {
+        font-size: 18px;
+    }
+
+    .message-text {
+        font-size: 13px;
+    }
+
+    .error-contact p {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .messages-container {
+        top: 5px;
+        right: 5px;
+        left: 5px;
+    }
+
+    .message-content {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .message-icon {
+        font-size: 16px;
     }
 }

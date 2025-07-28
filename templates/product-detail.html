@@ -10,6 +10,41 @@
 {% endblock %}
 
 {% block content %}
+  <!-- Messages Section -->
+  {% if messages %}
+    <div class="messages-container">
+      {% for message in messages %}
+        <div class="message message-{{ message.tags }}" id="message-{{ forloop.counter }}">
+          <div class="message-content">
+            <div class="message-icon">
+              {% if message.tags == 'success' %}
+                <i class="fas fa-check-circle"></i>
+              {% elif message.tags == 'error' %}
+                <i class="fas fa-exclamation-triangle"></i>
+              {% elif message.tags == 'warning' %}
+                <i class="fas fa-exclamation-circle"></i>
+              {% else %}
+                <i class="fas fa-info-circle"></i>
+              {% endif %}
+            </div>
+            <div class="message-text">
+              {{ message }}
+              {% if message.tags == 'error' %}
+                <div class="error-contact">
+                  <p>
+                    Need help? Call us at: <strong>+213 555 123 456</strong>
+                  </p>
+                </div>
+              {% endif %}
+            </div>
+            <button class="message-close" onclick="closeMessage('message-{{ forloop.counter }}')"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="message-progress"></div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
   <section class="product-detail">
     <div class="container">
       <!-- Back Button -->
@@ -119,7 +154,7 @@
 
           <div class="form-group">
             <label class="form-label">Email Address</label>
-            <input type="email" name="customer_email" class="form-input" placeholder="Enter your email" required />
+            <input type="email" name="customer_email" class="form-input" placeholder="Enter your email" />
           </div>
 
           <div class="form-group">
@@ -190,6 +225,41 @@
   </div>
 
   <script>
+    // Message handling functions
+    function closeMessage(messageId) {
+      const message = document.getElementById(messageId)
+      if (message) {
+        message.style.transform = 'translateX(100%)'
+        message.style.opacity = '0'
+        setTimeout(() => {
+          message.remove()
+        }, 300)
+      }
+    }
+    
+    // Auto-close messages after 8 seconds (success) or 15 seconds (error)
+    document.addEventListener('DOMContentLoaded', function () {
+      const messages = document.querySelectorAll('.message')
+      messages.forEach((message, index) => {
+        const messageId = 'message-' + (index + 1)
+        const isError = message.classList.contains('message-error')
+        const delay = isError ? 15000 : 8000 // 15s for errors, 8s for success
+    
+        // Start progress bar animation
+        const progressBar = message.querySelector('.message-progress')
+        if (progressBar) {
+          progressBar.style.animationDuration = delay + 'ms'
+          progressBar.classList.add('animate-progress')
+        }
+    
+        setTimeout(() => {
+          if (document.getElementById(messageId)) {
+            closeMessage(messageId)
+          }
+        }, delay)
+      })
+    })
+    
     // Image viewing and downloading functions
     function viewImage() {
       const modal = document.getElementById('imageModal')

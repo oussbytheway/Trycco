@@ -168,8 +168,8 @@ class ArticleAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['order_number', 'customer_name', 'article_link', 'quantity', 'size', 'color', 'total_amount', 'created_at']
-    list_filter = ['created_at', 'article', 'size', 'color']
+    list_display = ['order_number', 'customer_name', 'article_link', 'quantity', 'size', 'color', 'total_amount', 'confirmed', 'created_at']
+    list_filter = ['created_at', 'confirmed', 'article', 'size', 'color']
     search_fields = ['customer_name', 'customer_email', 'customer_phone', 'article__name']
     readonly_fields = ['created_at', 'order_summary']
     ordering = ['-created_at']
@@ -177,7 +177,7 @@ class OrderAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Customer Information', {
-            'fields': ('customer_name', 'customer_email', 'customer_phone')
+            'fields': ('customer_name', 'customer_email', 'customer_phone', 'confirmed', 'deliver_to')
         }),
         ('Order Details', {
             'fields': ('article', 'number', 'size', 'color')
@@ -207,6 +207,10 @@ class OrderAdmin(admin.ModelAdmin):
     total_amount.short_description = 'Total'
     
     def order_summary(self, obj):
+        if (obj.confirmed):
+            confirmed_emoji = '<img src="/static/admin/img/icon-yes.svg" alt="True">'
+        else:
+            confirmed_emoji = '<img src="/static/admin/img/icon-no.svg" alt="False">'
         total = obj.article.price * obj.number
         summary = f"""
         <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0;">
@@ -219,6 +223,8 @@ class OrderAdmin(admin.ModelAdmin):
             <p><strong>Quantity:</strong> {obj.number}</p>
             <p><strong>Size:</strong> {obj.size}</p>
             <p><strong>Color:</strong> {obj.color}</p>
+            <p><strong>Confirmed:</strong> {confirmed_emoji}</p>
+            <p><strong>Deliver to:</strong> {obj.deliver_to}</p>
             <hr style="margin: 10px 0;">
             <p><strong>Total Amount:</strong> ${total:.2f}</p>
             <p><strong>Order Date:</strong> {obj.created_at.strftime('%B %d, %Y at %I:%M %p')}</p>

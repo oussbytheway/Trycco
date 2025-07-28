@@ -95,6 +95,8 @@ class Order(models.Model):
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='orders')
     number = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     size = models.CharField(max_length=50)
+    confirmed = models.BooleanField(default=False)
+    deliver_to = models.CharField(max_length=500, null=True)
     color = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
 
