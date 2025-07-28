@@ -30,9 +30,10 @@ def products(request):
     # Apply search filter
     if search:
         products = products.filter(
-            Q(name__icontains=search) | 
-            Q(description__icontains=search) |
-            Q(tags__name__icontains=search)
+            Q(name__icontains=search) |
+            Q(tags__name__icontains=search) |
+            Q(category__name__icontains=search) |
+            Q(subcategory__name__icontains=search)
         ).distinct()
     
     # Apply sorting
