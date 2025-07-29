@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}
+        TRYCCO - Find Your Vibe
+      {% endblock %}
+    </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="container">
+        <a href="{% url 'landing_page' %}" class="logo">TRYCCO</a>
+        {% block navbar %}
+        {% endblock %}
+      </div>
+    </header>
+
+    <main>
+      {% block content %}
+
+      {% endblock %}
+    </main>
+
+    <section class="contact">
+      <div class="container">
+        {% block enquiries %}
+
+        {% endblock %}
+
+        <div class="contact-footer">
+          <div class="social-icons">
+            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+            <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+            <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest-p"></i></a>
+          </div>
+          <p>© 2025 TRYCCO. All rights reserved. Find Your Vibe.</p>
+        </div>
+      </div>
+    </section>
+
+    <script src="{% static 'script.js' %}"></script>
+  </body>
+</html>

@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Products - TRYCCO
+{% endblock %}
+
+{% block search %}
+
+{% endblock %}
+
+{% block content %}
+  <section class="products-page">
+    <div class="container">
+      <!-- Search Section -->
+      <div class="search-section">
+        <form method="GET" class="search-form" id="searchForm">
+          <div class="search-container-page">
+            <input type="text" 
+                   class="search-input-page" 
+                   placeholder="Search products..." 
+                   name="search"
+                   value="{{ current_search }}"
+                   id="productSearch" />
+            <button type="submit" class="search-btn-page" aria-label="Search">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+          <!-- Hidden field to preserve sort when searching -->
+          <input type="hidden" name="sort" value="{{ current_sort }}" id="hiddenSort">
+        </form>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="products-section">
+        <div class="products-header">
+          <div class="results-count">
+            <span id="resultsCount">{{ total_products }}</span> articles
+          </div>
+          <div class="sort-container">
+            <form method="GET" id="sortForm">
+              <select class="sort-select" name="sort" id="sortSelect" onchange="this.form.submit()">
+                <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Sort by Name</option>
+                <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
+              </select>
+              <!-- Hidden field to preserve search when sorting -->
+              <input type="hidden" name="search" value="{{ current_search }}">
+            </form>
+          </div>
+        </div>
+
+        <div class="products-grid" id="productsGrid">
+          {% for product in products %}
+            <a href="{% url 'product_detail' product.id %}" class="product-card-listing" data-product-id="{{ product.id }}">
+              <div class="product-image-container">
+                {% if product.picture %}
+                  <img src="{{ product.picture.url }}" alt="{{ product.name }}" class="product-image" />
+                {% else %}
+                  <div class="product-image-placeholder">
+                    <i class="fas fa-image"></i>
+                  </div>
+                {% endif %}
+                <div class="product-overlay">
+                  <button type="button" class="quick-view-btn" data-product-id="{{ product.id }}" onclick="event.preventDefault(); quickView({{ product.id }});">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="product-info">
+                <h3 class="product-name">{{ product.name }}</h3>
+                <p class="product-price">{{ product.price }} DA</p>
+                <div class="product-options">
+                  <div class="available-colors">
+                    {% for color in product.colors_available %}
+                      <span class="color-dot" style="background-color: {{ color }};" title="{{ color }}"></span>
+                    {% endfor %}
+                  </div>
+                  <div class="available-sizes">
+                    {% for size in product.sizes_available %}
+                      <span class="size-tag">{{ size }}</span>
+                    {% endfor %}
+                  </div>
+                  {% if product.tags.all %}
+                    <div class="available-tags">
+                      {% for tag in product.tags.all %}
+                        <span class="tag-pill">{{ tag.name }}</span>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </a>
+          {% empty %}
+            <div class="no-products-found">
+              <p>No products found matching your criteria.</p>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Django Pagination -->
+        {% if products.has_other_pages %}
+          <div class="pagination">
+            <div class="pagination-info">
+              Showing {{ products.start_index }} to {{ products.end_index }} of {{ total_products }} products
+            </div>
+            
+            <div class="pagination-controls">
+              {% if products.has_previous %}
+                <a href="?page=1{% if current_search %}&search={{ current_search }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" 
+                   class="pagination-btn first">
+                  <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a href="?page={{ products.previous_page_number }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" 
+                   class="pagination-btn prev">
+                  <i class="fas fa-angle-left"></i>
+                </a>
+              {% endif %}
+
+              <span class="pagination-info-mobile">
+                Page {{ products.number }} of {{ products.paginator.num_pages }}
+              </span>
+
+              <!-- Page numbers (show a few around current page) -->
+              {% for num in products.paginator.page_range %}
+                {% if num == products.number %}
+                  <span class="pagination-btn current">{{ num }}</span>
+                {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                  <a href="?page={{ num }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" 
+                     class="pagination-btn">{{ num }}</a>
+                {% elif num == 1 or num == products.paginator.num_pages %}
+                  <a href="?page={{ num }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" 
+                     class="pagination-btn">{{ num }}</a>
+                {% elif num == products.number|add:'-4' or num == products.number|add:'4' %}
+                  <span class="pagination-ellipsis">...</span>
+                {% endif %}
+              {% endfor %}
+
+              {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" 
+                   class="pagination-btn next">
+                  <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?page={{ products.paginator.num_pages }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" 
+                   class="pagination-btn last">
+                  <i class="fas fa-angle-double-right"></i>
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <style>
+    /* Pagination Styles */
+    .pagination {
+      margin: 40px 0;
+      text-align: center;
+    }
+
+    .pagination-info {
+      margin-bottom: 20px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .pagination-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .pagination-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 40px;
+      height: 40px;
+      padding: 8px 12px;
+      background: #fff;
+      border: 1px solid #ddd;
+      color: #333;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      font-size: 14px;
+    }
+
+    .pagination-btn:hover {
+      background: #007cba;
+      color: white;
+      border-color: #007cba;
+    }
+
+    .pagination-btn.current {
+      background: #007cba;
+      color: white;
+      border-color: #007cba;
+      cursor: default;
+    }
+
+    .pagination-ellipsis {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 4px;
+      color: #666;
+    }
+
+    .pagination-info-mobile {
+      display: none;
+      color: #666;
+      font-size: 14px;
+      padding: 8px 12px;
+    }
+
+    .no-products-found {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+      font-size: 18px;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+      .pagination-controls {
+        gap: 2px;
+      }
+      
+      .pagination-btn {
+        min-width: 35px;
+        height: 35px;
+        font-size: 13px;
+      }
+      
+      .pagination-info {
+        display: none;
+      }
+      
+      .pagination-info-mobile {
+        display: inline-flex;
+      }
+      
+      /* Hide some page numbers on mobile */
+      .pagination-btn:not(.first):not(.prev):not(.next):not(.last):not(.current) {
+        display: none;
+      }
+    }
+  </style>
+{% endblock %}

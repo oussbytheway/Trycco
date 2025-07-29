@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Product View - TRYCCO
+{% endblock %}
+
+{% block content %}
+  <!-- Messages Section -->
+  {% if messages %}
+    <div class="messages-container">
+      {% for message in messages %}
+        <div class="message message-{{ message.tags }}" id="message-{{ forloop.counter }}">
+          <div class="message-content">
+            <div class="message-icon">
+              {% if message.tags == 'success' %}
+                <i class="fas fa-check-circle"></i>
+              {% elif message.tags == 'error' %}
+                <i class="fas fa-exclamation-triangle"></i>
+              {% elif message.tags == 'warning' %}
+                <i class="fas fa-exclamation-circle"></i>
+              {% else %}
+                <i class="fas fa-info-circle"></i>
+              {% endif %}
+            </div>
+            <div class="message-text">
+              {{ message }}
+              {% if message.tags == 'error' %}
+                <div class="error-contact">
+                  <p>
+                    Need help? Call us at: <strong>+213 555 123 456</strong>
+                  </p>
+                </div>
+              {% endif %}
+            </div>
+            <button class="message-close" onclick="closeMessage('message-{{ forloop.counter }}')"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="message-progress"></div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <section class="product-detail">
+    <div class="container">
+      <!-- Back Button -->
+      <a href="{% url 'products' %}" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+        Back to Products
+      </a>
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb">
+        <a href="{% url 'landing_page' %}">Home</a>
+        <span>/</span>
+        <a href="{% url 'products' %}">Products</a>
+        {% if product.subcategory %}
+          <span>/</span>
+          <a href="#">{{ product.subcategory }}</a>
+        {% elif product.category %}
+          <span>/</span>
+          <a href="#">{{ product.category }}</a>
+        {% endif %}
+        <span>/</span>
+        <span style="color: wheat;">{{ product.name }}</span>
+      </nav>
+
+      <!-- Product Container -->
+      <div class="product-container">
+        <!-- Product Image Section -->
+        <div class="product-image-section">
+          <div class="main-image-container">
+            <!-- Replace with actual product image -->
+            {% if product.picture %}
+              <img src="{{ product.picture.url }}" alt="{{ product.name }}" class="main-product-image" id="productImage" />
+            {% else %}
+              <div class="image-placeholder">
+                <i class="fas fa-image"></i>
+              </div>
+            {% endif %}
+            <div class="image-badge">Available</div>
+
+            <!-- Image Action Buttons -->
+            <div class="image-actions">
+              <button class="action-btn view-btn" onclick="viewImage()" title="View Full Size"><i class="fas fa-eye"></i></button>
+              <button class="action-btn download-btn" onclick="downloadImage()" title="Download Image"><i class="fas fa-download"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Info Section -->
+        <div class="product-info-section">
+          <div class="product-header">
+            <h1 class="product-title">{{ product.name }}</h1>
+            <div class="product-tags">
+              {% if product.category %}
+                <span class="product-tag">{{ product.category.name }}</span>
+              {% endif %}
+              {% if product.subcategory %}
+                <span class="product-tag">{{ product.subcategory.name }}</span>
+              {% endif %}
+              {% if product.tags.all %}
+                {% for tag in product.tags.all %}
+                  <span class="product-tag">{{ tag.name }}</span>
+                {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="product-price-section">
+            <p class="product-price" id="productPrice" data-price="{{ product.price }}">{{ product.price }} DA</p>
+          </div>
+
+          <div class="product-detail-options">
+            {% if product.colors_available %}
+              <div class="option-group">
+                <label class="option-label">Colors Available</label>
+                <div class="color-options">
+                  {% for color in product.colors_available %}
+                    <div class="color-option {% if forloop.first %}selected{% endif %}" style="background-color: {{ color }};" data-color="{{ color }}" title="{{ color }}" onclick="selectColor(this)"></div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+
+            {% if product.sizes_available %}
+              <div class="option-group">
+                <label class="option-label">Sizes Available</label>
+                <div class="size-options">
+                  {% for size in product.sizes_available %}
+                    <div class="size-option {% if size == 'M' %}selected{% endif %}" data-size="{{ size }}" onclick="selectSize(this)">{{ size }}</div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Section -->
+      <div class="order-section">
+        <h2 class="order-title">Place Your Order</h2>
+
+        <form class="order-form" method="POST" action="{% url 'create_order' product.id %}">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="form-label">Customer Name</label>
+            <input type="text" name="customer_name" class="form-input" placeholder="Enter your full name" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" name="customer_email" class="form-input" placeholder="Enter your email" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" name="customer_phone" class="form-input" placeholder="Enter your phone number" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Quantity</label>
+            <div class="quantity-input">
+              <button type="button" class="quantity-btn" onclick="decreaseQuantity()">-</button>
+              <input type="number" name="number" class="quantity-number" value="1" min="1" id="quantity" onchange="updateSummary()" />
+              <button type="button" class="quantity-btn" onclick="increaseQuantity()">+</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Size</label>
+            <select name="size" class="form-select" id="sizeSelect" onchange="updateSummary()" required>
+              {% for size in product.sizes_available %}
+                <option value="{{ size }}" class="{% if size == 'M' %}selected{% endif %}">{{ size }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Color</label>
+            <select name="color" class="form-select" id="colorSelect" onchange="updateSummary()" required>
+              {% for color in product.colors_available %}
+                <option value="{{ color }}" class="{% if forloop.first %}selected{% endif %}">{{ color }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="order-summary">
+            <div class="summary-row">
+              <span>Product:</span>
+              <span id="summaryProduct">{{ product.name }}</span>
+            </div>
+            <div class="summary-row">
+              <span>Size:</span>
+              <span id="summarySize">M</span>
+            </div>
+            <div class="summary-row">
+              <span>Color:</span>
+              <span id="summaryColor">{{ product.colors_available.0 }}</span>
+            </div>
+            <div class="summary-row">
+              <span>Quantity:</span>
+              <span id="summaryQuantity">1</span>
+            </div>
+            <div class="summary-row">
+              <span>Total:</span>
+              <span id="summaryTotal">{{ product.price }} DA</span>
+            </div>
+          </div>
+
+          <button type="submit" class="order-btn">Place Order</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Image Modal -->
+  <div id="imageModal" class="image-modal" onclick="closeModal()">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="modalImage" />
+  </div>
+{% endblock %}

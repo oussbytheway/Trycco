@@ -1,165 +1,338 @@
-// Search functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.querySelector('.search-input');
-    const searchBtn = document.querySelector('.search-btn');
-    const carousel = document.getElementById('carousel');
-
-    // Search functionality
-    function handleSearch() {
-        const searchValue = searchInput.value.trim();
-        if (searchValue) {
-            console.log('Search query:', searchValue);
-            // Here you would typically send the search query to your backend
-            // For now, we'll just log it to the console
+    // Message handling functions
+    function closeMessage(messageId) {
+        const message = document.getElementById(messageId)
+        if (message) {
+            message.style.transform = 'translateX(100%)'
+            message.style.opacity = '0'
+            setTimeout(() => {
+                message.remove()
+            }, 300)
         }
     }
-
-    // Search button click event
-    searchBtn.addEventListener('click', handleSearch);
-
-    // Search input enter key event
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            handleSearch();
-        }
-    });
-
-    // Carousel scroll functionality
-    let isScrolling = false;
-    let scrollTimeout;
-
-    // Add smooth scrolling with mouse wheel
-    carousel.addEventListener('wheel', function(e) {
-        e.preventDefault();
-        carousel.scrollLeft += e.deltaY;
-    });
-
-    // Add touch/drag scrolling for mobile
-    let isDown = false;
-    let startX;
-    let scrollLeft;
-
-    carousel.addEventListener('mousedown', function(e) {
-        isDown = true;
-        carousel.classList.add('active');
-        startX = e.pageX - carousel.offsetLeft;
-        scrollLeft = carousel.scrollLeft;
-    });
-
-    carousel.addEventListener('mouseleave', function() {
-        isDown = false;
-        carousel.classList.remove('active');
-    });
-
-    carousel.addEventListener('mouseup', function() {
-        isDown = false;
-        carousel.classList.remove('active');
-    });
-
-    carousel.addEventListener('mousemove', function(e) {
-        if (!isDown) return;
-        e.preventDefault();
-        const x = e.pageX - carousel.offsetLeft;
-        const walk = (x - startX) * 2;
-        carousel.scrollLeft = scrollLeft - walk;
-    });
-
-    // Category button interactions
-    const categoryButtons = document.querySelectorAll('.category-btn');
-    categoryButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const category = this.textContent;
-            console.log('Selected category:', category);
-            
-            // Remove active class from all buttons
-            categoryButtons.forEach(btn => btn.classList.remove('active'));
-            
-            // Add active class to clicked button
-            this.classList.add('active');
-            
-            // Here you would typically filter products by category
-            // For now, we'll just log the selection
-        });
-    });
-
-    // Product card interactions
-    const productCards = document.querySelectorAll('.product-card');
-    productCards.forEach(card => {
-        card.addEventListener('click', function() {
-            console.log('Product card clicked');
-            // Here you would typically navigate to product details
-        });
-    });
-
-    // See more card interaction
-    const seeMoreCard = document.querySelector('.see-more-card');
-    if (seeMoreCard) {
-        seeMoreCard.addEventListener('click', function() {
-            console.log('See more clicked');
-            // Here you would typically load more products or navigate to products page
-        });
-    }
-
-    // Smooth scroll reveal animation (optional enhancement)
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, observerOptions);
-
-    // Observe sections for scroll animations
-    const sections = document.querySelectorAll('section');
-    sections.forEach(section => {
-        section.style.opacity = '0';
-        section.style.transform = 'translateY(20px)';
-        section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        observer.observe(section);
-    });
-
-    // Initialize first section as visible
-    if (sections.length > 0) {
-        sections[0].style.opacity = '1';
-        sections[0].style.transform = 'translateY(0)';
-    }
-});
-
-// Additional utility functions
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Responsive carousel adjustment
-function adjustCarousel() {
-    const carousel = document.getElementById('carousel');
-    const cards = carousel.querySelectorAll('.product-card, .see-more-card');
-    const containerWidth = carousel.offsetWidth;
-    const cardWidth = 220; // 200px + 20px gap
-    const visibleCards = Math.floor(containerWidth / cardWidth);
     
-    // Add scroll indicators if needed
-    if (cards.length > visibleCards) {
-        carousel.classList.add('scrollable');
+    // Auto-close messages after 8 seconds (success) or 15 seconds (error)
+    const messages = document.querySelectorAll('.message')
+    messages.forEach((message, index) => {
+        const messageId = 'message-' + (index + 1)
+        const isError = message.classList.contains('message-error')
+        const delay = isError ? 15000 : 8000 // 15s for errors, 8s for success
+
+        // Start progress bar animation
+        const progressBar = message.querySelector('.message-progress')
+        if (progressBar) {
+            progressBar.style.animationDuration = delay + 'ms'
+            progressBar.classList.add('animate-progress')
+        }
+
+        setTimeout(() => {
+            if (document.getElementById(messageId)) {
+                closeMessage(messageId)
+            }
+        }, delay)
+    })
+
+    // Carousel functionality for homepage
+    const carousel = document.getElementById('carousel')
+    const prevBtn = document.querySelector('.carousel-btn.prev')
+    const nextBtn = document.querySelector('.carousel-btn.next')
+    
+    if (carousel && prevBtn && nextBtn) {
+        // Calculate scroll amount based on card width and gap
+        function getScrollAmount() {
+            const card = document.querySelector('.product-card')
+            if (!card) return 300
+            
+            const cardWidth = card.offsetWidth
+            const gap = 20 // Gap between cards
+            return cardWidth + gap
+        }
+        
+        // Previous button click handler
+        prevBtn.addEventListener('click', () => {
+            carousel.scrollBy({
+                left: -getScrollAmount(),
+                behavior: 'smooth'
+            })
+        })
+        
+        // Next button click handler
+        nextBtn.addEventListener('click', () => {
+            carousel.scrollBy({
+                left: getScrollAmount(),
+                behavior: 'smooth'
+            })
+        })
+        
+        // Hide arrows when at the beginning or end of carousel
+        function updateArrowVisibility() {
+            const scrollPosition = carousel.scrollLeft
+            const maxScroll = carousel.scrollWidth - carousel.clientWidth
+            
+            prevBtn.style.visibility = scrollPosition > 0 ? 'visible' : 'hidden'
+            nextBtn.style.visibility = scrollPosition < maxScroll - 5 ? 'visible' : 'hidden'
+        }
+        
+        // Initialize arrow visibility
+        updateArrowVisibility()
+        
+        // Update arrow visibility on scroll
+        carousel.addEventListener('scroll', updateArrowVisibility)
+        
+        // Update on window resize
+        window.addEventListener('resize', () => {
+            updateArrowVisibility()
+        })
+    }
+    
+    // Create image modal if it doesn't exist (for products page)
+    function createImageModal() {
+        if (document.getElementById('imageModal')) return
+        
+        const modal = document.createElement('div')
+        modal.id = 'imageModal'
+        modal.className = 'image-modal'
+        modal.innerHTML = `
+            <span class="close">&times;</span>
+            <img class="modal-content" id="modalImage" />
+        `
+        
+        document.body.appendChild(modal)
+        
+        // Add click event to close modal when clicking outside
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal()
+            }
+        })
+        
+        // Add click event to close button
+        const closeBtn = modal.querySelector('.close')
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal)
+        }
+    }
+
+    // Search form enhancement (optional - adds live search functionality)
+    const searchForm = document.getElementById('searchForm')
+    const searchInput = document.getElementById('productSearch')
+    
+    if (searchInput) {
+        let searchTimeout
+        
+        // Optional: Add live search with debouncing
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim()
+            
+            // Clear previous timeout
+            if (searchTimeout) {
+                clearTimeout(searchTimeout)
+            }
+            
+            // Debounce search - automatically submit after user stops typing
+            searchTimeout = setTimeout(() => {
+                if (searchTerm.length > 2 || searchTerm.length === 0) {
+                    console.log('Auto-search for:', searchTerm || '(cleared)')
+                    // Uncomment the line below if you want auto-search
+                    // searchForm.submit();
+                }
+            }, 500) // Wait 500ms after user stops typing
+        })
+        
+        // Handle form submission
+        searchForm.addEventListener('submit', function(e) {
+            // Allow normal form submission - Django will handle it
+            console.log('Searching for:', searchInput.value)
+        })
+    }
+    
+    // Smooth scroll to top when pagination is used
+    const paginationLinks = document.querySelectorAll('.pagination-btn')
+    paginationLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            // Let the link work normally, but add smooth scroll to top
+            setTimeout(() => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                })
+            }, 100)
+        })
+    })
+    
+    // Loading indicator for form submissions (optional UX enhancement)
+    const forms = document.querySelectorAll('form')
+    forms.forEach(form => {
+        form.addEventListener('submit', function() {
+            const submitBtn = form.querySelector('button[type="submit"]')
+            if (submitBtn) {
+                const originalHTML = submitBtn.innerHTML
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'
+                submitBtn.disabled = true
+                
+                // Re-enable after a delay (in case of quick redirects)
+                setTimeout(() => {
+                    submitBtn.innerHTML = originalHTML
+                    submitBtn.disabled = false
+                }, 3000)
+            }
+        })
+    })
+
+    // Keyboard navigation for modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal()
+        }
+    })
+})
+
+// Global functions that need to be accessible outside the DOMContentLoaded scope
+
+// Image viewing and downloading functions
+function viewImage(imageSrc, productName) {
+    // Create modal if it doesn't exist
+    if (!document.getElementById('imageModal')) {
+        const modal = document.createElement('div')
+        modal.id = 'imageModal'
+        modal.className = 'image-modal'
+        modal.style.backgroundColor = 'rgba(37, 37, 39, 0.9)'
+        modal.innerHTML = `
+            <span class="close">&times;</span>
+            <img class="modal-content" id="modalImage" />
+        `
+        
+        document.body.appendChild(modal)
+        
+        // Add click event to close modal when clicking outside
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal()
+            }
+        })
+        
+        // Add click event to close button
+        const closeBtn = modal.querySelector('.close')
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal)
+        }
+    }
+
+    const modal = document.getElementById('imageModal')
+    const modalImg = document.getElementById('modalImage')
+    
+    // Ensure the background color is set (in case modal already exists)
+    modal.style.backgroundColor = 'rgba(37, 37, 39, 0.9)'
+    
+    // Handle both old and new calling patterns
+    if (imageSrc) {
+        modal.style.display = 'block'
+        modalImg.src = imageSrc
+        modalImg.alt = productName || 'Product Image'
     } else {
-        carousel.classList.remove('scrollable');
+        // Legacy support: get image from productImage element
+        const productImg = document.getElementById('productImage')
+        if (productImg) {
+            modal.style.display = 'block'
+            modalImg.src = productImg.src
+        }
     }
 }
 
-// Call on load and resize
-window.addEventListener('load', adjustCarousel);
-window.addEventListener('resize', debounce(adjustCarousel, 250));
+function closeModal() {
+    const modal = document.getElementById('imageModal')
+    if (modal) {
+        modal.style.display = 'none'
+    }
+}
+
+function downloadImage() {
+    const productImg = document.getElementById('productImage')
+    if (productImg) {
+        const link = document.createElement('a')
+        link.href = productImg.src
+        link.download = '{{ product.name|slugify }}.jpg'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    }
+}
+
+// Quantity functions
+function decreaseQuantity() {
+    const quantityInput = document.getElementById('quantity')
+    if (quantityInput.value > 1) {
+        quantityInput.value = parseInt(quantityInput.value) - 1
+        updateSummary()
+    }
+}
+
+function increaseQuantity() {
+    const quantityInput = document.getElementById('quantity')
+    quantityInput.value = parseInt(quantityInput.value) + 1
+    updateSummary()
+}
+
+// Color and size selection functions
+function selectColor(element) {
+    document.querySelectorAll('.color-option').forEach((option) => {
+        option.classList.remove('selected')
+    })
+    element.classList.add('selected')
+
+    const colorSelect = document.getElementById('colorSelect')
+    const colorValue = element.getAttribute('data-color')
+    colorSelect.value = colorValue
+    updateSummary()
+}
+
+function selectSize(element) {
+    document.querySelectorAll('.size-option').forEach((option) => {
+        option.classList.remove('selected')
+    })
+    element.classList.add('selected')
+
+    const sizeSelect = document.getElementById('sizeSelect')
+    const sizeValue = element.getAttribute('data-size')
+    sizeSelect.value = sizeValue
+    updateSummary()
+}
+
+// Update order summary
+function updateSummary() {
+    const quantity = document.getElementById('quantity').value
+    const size = document.getElementById('sizeSelect').value
+    const color = document.getElementById('colorSelect').value
+    const price = document.getElementById('productPrice').getAttribute('data-price')
+
+    document.getElementById('summaryQuantity').textContent = quantity
+    document.getElementById('summarySize').textContent = size
+    document.getElementById('summaryColor').textContent = color
+    document.getElementById('summaryTotal').textContent = price * quantity + ' DA'
+}
+
+// Quick view functionality - Uses viewImage to show image modal
+function quickView(productId) {
+    console.log('Quick view requested for product:', productId)
+    
+    // Find the product card
+    const productCard = document.querySelector(`[data-product-id="${productId}"]`)
+    if (!productCard) {
+        console.error('Product card not found for ID:', productId)
+        return
+    }
+    
+    // Get the product image and name
+    const productImg = productCard.querySelector('.product-image')
+    const productName = productCard.querySelector('.product-name')
+    
+    if (productImg) {
+        const imageSrc = productImg.src
+        const name = productName ? productName.textContent : 'Product'
+        
+        // Use the existing viewImage function
+        viewImage(imageSrc, name)
+    } else {
+        console.log('No image found for product:', productId)
+    }
+}

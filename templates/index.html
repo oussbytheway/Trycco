@@ -1,124 +1,91 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TRYCCO - Find Your Vibe</title>
-    <link rel="stylesheet" href="{% static 'styles.css' %}" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
-  </head>
-  <body>
-    <!-- Header -->
-    <header class="header">
-      <div class="container">
-        <div class="logo">TRYCCO</div>
-        <div class="search-container">
-          <input type="text" class="search-input" placeholder="Search..." />
-          <button class="search-btn" aria-label="Search">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          </button>
+{% block navbar %}
+  <form method="GET" action="{% url 'products' %}" class="search-form" id="searchForm">
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search..." name="search" id="productSearch" />
+      <button class="search-btn" type="submit" aria-label="Search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+      </button>
+    </div>
+  </form>
+{% endblock %}
+{% block content %}
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          <span class="line">FIND</span>
+          <span class="line">YOUR</span>
+          <span class="line">VIBE</span>
+        </h1>
+        <div class="hero-image">
+          <img src="{% static 'images/metallica-shirt.png' %}" alt="Metallica T-shirt" class="tshirt-image primary-image" />
         </div>
       </div>
-    </header>
+    </div>
+  </section>
 
-    <main>
-      <!-- Hero Section -->
-      <section class="hero">
-        <div class="container">
-          <div class="hero-content">
-            <h1 class="hero-title">
-              <span class="line">FIND</span>
-              <span class="line">YOUR</span>
-              <span class="line">VIBE</span>
-            </h1>
-            <div class="hero-image">
-              <img src="{% static 'images/metallica-shirt.png' %}" alt="Metallica T-shirt" class="tshirt-image primary-image" />
+  <!-- New Drops Section -->
+  <section class="new-drops">
+    <div class="container">
+      <h2 class="section-title">New drops !!</h2>
+      <div class="carousel-container">
+        <div class="carousel" id="carousel">
+          {% for article in carousel_articles %}
+            <div class="product-card">
+              <img src="{{ article.picture.url }}" alt="{{ article.name }}" />
+              <h3>{{ article.name }}</h3>
+              <p>{{ article.price }} DA</p>
             </div>
-          </div>
+          {% endfor %}
+          <a href="{% url 'products' %}" class="see-more-card"><span>See more</span></a>
         </div>
-      </section>
 
-      <!-- New Drops Section -->
-      <section class="new-drops">
-        <div class="container">
-          <h2 class="section-title">New drops !!</h2>
-          <div class="carousel-container">
-            <div class="carousel" id="carousel">
-              <div class="product-card">
-                <img src="{% static 'images/opeth-shirt.png' %}" alt="Band T-shirt 1" />
-              </div>
-              <div class="product-card">
-                <img src="{% static 'images/opeth-shirt.png' %}" alt="AC/DC T-shirt" />
-              </div>
-              <div class="product-card">
-                <img src="{% static 'images/opeth-shirt.png' %}" alt="Vintage Band T-shirt" />
-              </div>
-              <div class="product-card">
-                <img src="{% static 'images/opeth-shirt.png' %}" alt="Rock Band T-shirt" />
-              </div>
-              <div class="product-card">
-                <img src="{% static 'images/opeth-shirt.png' %}" alt="Metal Band T-shirt" />
-              </div>
-              <div class="see-more-card">
-                <span>See more</span>
-              </div>
-            </div>
-          </div>
+        <div class="carousel-nav">
+          <button class="carousel-btn prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
+          <button class="carousel-btn next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
         </div>
-      </section>
+      </div>
+    </div>
+  </section>
 
-      <!-- Categories Section -->
-      <section class="categories">
-        <div class="container">
-          <div class="categories-header">
-            <div class="line"></div>
-            <h2 class="section-title">CATEGORIES</h2>
-            <div class="line"></div>
-          </div>
-          <div class="category-buttons">
-            <button class="category-btn">Movies</button>
-            <button class="category-btn">Sports</button>
-            <button class="category-btn">Music</button>
-            <button class="category-btn">Anime</button>
-            <button class="category-btn">Art</button>
-          </div>
-        </div>
-      </section>
+  <!-- Categories Section -->
+  <section class="categories">
+    <div class="container">
+      <div class="categories-header">
+        <div class="line"></div>
+        <h2 class="section-title">CATEGORIES</h2>
+        <div class="line"></div>
+      </div>
+      <div class="category-buttons">
+        {% for category in categories %}
+          <button class="category-btn">{{ category.name }}</button>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}
 
-      <!-- Contact Section -->
-      <section class="contact">
-        <div class="container">
-          <h2 class="contact-title">
-            <span class="line">REACH OUT FOR</span>
-            <span class="line">INQUIRIES</span>
-          </h2>
-          <h3 class="contact-subtitle">AND PARTNERSHIPS</h3>
+{% block enquiries %}
+  <h2 class="contact-title">
+    <span class="line">REACH OUT FOR</span>
+    <span class="line">INQUIRIES</span>
+  </h2>
+  <h3 class="contact-subtitle">AND PARTNERSHIPS</h3>
 
-          <div class="contact-info">
-            <div class="contact-item">
-              <h4>PHONE</h4>
-              <p>(123) 456-7890</p>
-            </div>
-            <div class="contact-item">
-              <h4>EMAIL</h4>
-              <p>hello@reallygreatsite.com</p>
-            </div>
-            <div class="contact-item">
-              <h4>SOCIAL</h4>
-              <div class="social-icons">
-                <a href="#" aria-label="Facebook">f</a>
-                <a href="#" aria-label="Instagram">📷</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <script src="{% static 'script.js' %}"></script>
-  </body>
-</html>
+  <div class="contact-info">
+    <div class="contact-item">
+      <h4>PHONE</h4>
+      <p>(123) 456-7890</p>
+    </div>
+    <div class="contact-item">
+      <h4>EMAIL</h4>
+      <p>hello@reallygreatsite.com</p>
+    </div>
+  </div>
+{% endblock %}
