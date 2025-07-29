@@ -196,6 +196,7 @@ function viewImage(imageSrc, productName) {
         const modal = document.createElement('div')
         modal.id = 'imageModal'
         modal.className = 'image-modal'
+        modal.style.backgroundColor = 'rgba(37, 37, 39, 0.9)'
         modal.innerHTML = `
             <span class="close">&times;</span>
             <img class="modal-content" id="modalImage" />
@@ -219,6 +220,9 @@ function viewImage(imageSrc, productName) {
 
     const modal = document.getElementById('imageModal')
     const modalImg = document.getElementById('modalImage')
+    
+    // Ensure the background color is set (in case modal already exists)
+    modal.style.backgroundColor = 'rgba(37, 37, 39, 0.9)'
     
     // Handle both old and new calling patterns
     if (imageSrc) {

@@ -168,8 +168,8 @@ class ArticleAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['order_number', 'customer_name', 'article_link', 'quantity', 'size', 'color', 'total_amount', 'confirmed', 'created_at']
-    list_filter = ['created_at', 'confirmed', 'article', 'size', 'color']
+    list_display = ['order_number', 'customer_name', 'article_link', 'quantity', 'size', 'color', 'total_amount', 'confirmed', 'delivered', 'created_at']
+    list_filter = ['created_at', 'confirmed', 'article', 'size', 'color', 'cancled']
     search_fields = ['customer_name', 'customer_email', 'customer_phone', 'article__name']
     readonly_fields = ['created_at', 'order_summary']
     ordering = ['-created_at']
@@ -177,7 +177,7 @@ class OrderAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Customer Information', {
-            'fields': ('customer_name', 'customer_email', 'customer_phone', 'confirmed', 'deliver_to')
+            'fields': ('customer_name', 'customer_email', 'customer_phone', 'confirmed', 'deliver_to', 'delivered', 'cancled', 'canclation_reason')
         }),
         ('Order Details', {
             'fields': ('article', 'number', 'size', 'color')
@@ -211,6 +211,20 @@ class OrderAdmin(admin.ModelAdmin):
             confirmed_emoji = '<img src="/static/admin/img/icon-yes.svg" alt="True">'
         else:
             confirmed_emoji = '<img src="/static/admin/img/icon-no.svg" alt="False">'
+            
+        if (obj.delivered):
+            delivered_emoji = '<img src="/static/admin/img/icon-yes.svg" alt="True">'
+        else:
+            delivered_emoji = '<img src="/static/admin/img/icon-no.svg" alt="False">'
+            
+        if (obj.cancled):
+            cancled_emoji = '<img src="/static/admin/img/icon-yes.svg" alt="True">'
+            canclation_reason_String = f"<strong>Canceled for</strong>: {obj.canclation_reason}"
+        else:
+            cancled_emoji = '<img src="/static/admin/img/icon-no.svg" alt="False">'
+            canclation_reason_String = ""
+
+        
         total = obj.article.price * obj.number
         summary = f"""
         <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0;">
@@ -225,6 +239,9 @@ class OrderAdmin(admin.ModelAdmin):
             <p><strong>Color:</strong> {obj.color}</p>
             <p><strong>Confirmed:</strong> {confirmed_emoji}</p>
             <p><strong>Deliver to:</strong> {obj.deliver_to}</p>
+            <p><strong>Delivered:</strong> {delivered_emoji}</p>
+            <p><strong>Cancled:</strong> {cancled_emoji}</p>
+            {canclation_reason_String}
             <hr style="margin: 10px 0;">
             <p><strong>Total Amount:</strong> ${total:.2f}</p>
             <p><strong>Order Date:</strong> {obj.created_at.strftime('%B %d, %Y at %I:%M %p')}</p>

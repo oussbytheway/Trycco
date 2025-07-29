@@ -9,8 +9,98 @@ from django.shortcuts import render, get_object_or_404
 from django.http import Http404
 from django.db import transaction
 from django.db.models import Q
+from django.conf import settings
+from mailjet_rest import Client
+import os
 
 logger = logging.getLogger(__name__)
+
+def send_order_notification_email(order):
+    """
+    Send email notification to admin when a new order is created
+    """
+    try:
+        # Initialize Mailjet client
+        mailjet = Client(
+            auth=(settings.MAILJET_API_KEY, settings.MAILJET_SECRET_KEY),
+            version='v3.1'
+        )
+        
+        # Prepare email data
+        data = {
+            'Messages': [
+                {
+                    "From": {
+                        "Email": settings.MAILJET_FROM_EMAIL,
+                        "Name": settings.MAILJET_FROM_NAME
+                    },
+                    "To": [
+                        {
+                            "Email": settings.ADMIN_EMAIL,
+                            "Name": "Admin"
+                        }
+                    ],
+                    "Subject": f"New Order #{order.pk} - {order.article.name}",
+                    "HTMLPart": f"""
+                    <h2>New Order Received</h2>
+                    <p><strong>Order ID:</strong> #{order.pk}</p>
+                    <p><strong>Date:</strong> {order.created_at.strftime('%Y-%m-%d %H:%M:%S')}</p>
+                    
+                    <h3>Customer Information</h3>
+                    <p><strong>Name:</strong> {order.customer_name}</p>
+                    <p><strong>Email:</strong> {order.customer_email}</p>
+                    <p><strong>Phone:</strong> {order.customer_phone}</p>
+                    
+                    <h3>Product Information</h3>
+                    <p><strong>Product:</strong> {order.article.name}</p>
+                    <p><strong>Category:</strong> {order.article.category.name if order.article.category else 'N/A'}</p>
+                    <p><strong>Quantity:</strong> {order.number}</p>
+                    <p><strong>Size:</strong> {order.size}</p>
+                    <p><strong>Color:</strong> {order.color}</p>
+                    <p><strong>Unit Price:</strong> {order.article.price} DA</p>
+                    <p><strong>Total Amount:</strong> {order.total_amount} DA</p>
+                    
+                    <p>Please contact the customer to confirm delivery details.</p>
+                    """,
+                    "TextPart": f"""
+                    New Order Received
+                    
+                    Order ID: #{order.pk}
+                    Date: {order.created_at.strftime('%Y-%m-%d %H:%M:%S')}
+                    
+                    Customer Information:
+                    Name: {order.customer_name}
+                    Email: {order.customer_email}
+                    Phone: {order.customer_phone}
+                    
+                    Product Information:
+                    Product: {order.article.name}
+                    Category: {order.article.category.name if order.article.category else 'N/A'}
+                    Quantity: {order.number}
+                    Size: {order.size}
+                    Color: {order.color}
+                    Unit Price: {order.article.price} DA
+                    Total Amount: {order.total_amount} DA
+                    
+                    Please contact the customer to confirm delivery details.
+                    """
+                }
+            ]
+        }
+        
+        # Send email
+        result = mailjet.send.create(data=data)
+        
+        if result.status_code == 200:
+            logger.info(f"Order notification email sent successfully for order {order.pk}")
+            return True
+        else:
+            logger.error(f"Failed to send order notification email for order {order.pk}: {result.json()}")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Error sending order notification email for order {order.pk}: {str(e)}")
+        return False
 
 # Create your views here.
 def landingPage(request):
@@ -159,6 +249,9 @@ def create_order(request, product_id):
                     size=size,
                     color=color
                 )
+                
+                # Send email notification to admin
+                send_order_notification_email(order)
                 
                 # Log successful order creation
                 logger.info(f"Order {order.pk} created successfully for customer {customer_name}")
