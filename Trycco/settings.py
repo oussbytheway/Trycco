@@ -128,8 +128,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Mailjet Configuration
-MAILJET_API_KEY = os.getenv('MAILJET_API_KEY', '5267f02aeaa8402eb4b8e0f766e5b0ea')
-MAILJET_SECRET_KEY = os.getenv('MAILJET_SECRET_KEY', '1563a0e7837639df0c915b3b8b8f68d6')
+MAILJET_API_KEY = os.getenv('MAILJET_API_KEY', '9eb23f6273c56ca6ca0744f80442d95b')
+MAILJET_SECRET_KEY = os.getenv('MAILJET_SECRET_KEY', 'f45a220cbd576a1447f59e5146d4ea5b')
 MAILJET_FROM_EMAIL = os.getenv('MAILJET_FROM_EMAIL', 'oussthecodeguy@gmail.com')
 MAILJET_FROM_NAME = os.getenv('MAILJET_FROM_NAME', 'Trycco Store')
 

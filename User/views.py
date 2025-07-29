@@ -42,25 +42,198 @@ def send_order_notification_email(order):
                     ],
                     "Subject": f"New Order #{order.pk} - {order.article.name}",
                     "HTMLPart": f"""
-                    <h2>New Order Received</h2>
-                    <p><strong>Order ID:</strong> #{order.pk}</p>
-                    <p><strong>Date:</strong> {order.created_at.strftime('%Y-%m-%d %H:%M:%S')}</p>
-                    
-                    <h3>Customer Information</h3>
-                    <p><strong>Name:</strong> {order.customer_name}</p>
-                    <p><strong>Email:</strong> {order.customer_email}</p>
-                    <p><strong>Phone:</strong> {order.customer_phone}</p>
-                    
-                    <h3>Product Information</h3>
-                    <p><strong>Product:</strong> {order.article.name}</p>
-                    <p><strong>Category:</strong> {order.article.category.name if order.article.category else 'N/A'}</p>
-                    <p><strong>Quantity:</strong> {order.number}</p>
-                    <p><strong>Size:</strong> {order.size}</p>
-                    <p><strong>Color:</strong> {order.color}</p>
-                    <p><strong>Unit Price:</strong> {order.article.price} DA</p>
-                    <p><strong>Total Amount:</strong> {order.total_amount} DA</p>
-                    
-                    <p>Please contact the customer to confirm delivery details.</p>
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="utf-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>New Order Notification</title>
+                        <style>
+                            body {{
+                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                                background-color: #1a1a1a;
+                                color: #ffffff;
+                                margin: 0;
+                                padding: 20px;
+                                line-height: 1.6;
+                            }}
+                            .container {{
+                                max-width: 600px;
+                                margin: 0 auto;
+                                background-color: #2a2a2a;
+                                border-radius: 10px;
+                                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+                                overflow: hidden;
+                            }}
+                            .header {{
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                padding: 30px;
+                                text-align: center;
+                            }}
+                            .header h1 {{
+                                margin: 0;
+                                color: white;
+                                font-size: 28px;
+                                font-weight: 600;
+                            }}
+                            .order-id {{
+                                background-color: rgba(255, 255, 255, 0.2);
+                                padding: 8px 16px;
+                                border-radius: 20px;
+                                display: inline-block;
+                                margin-top: 10px;
+                                font-weight: 500;
+                            }}
+                            .content {{
+                                padding: 30px;
+                            }}
+                            .section {{
+                                margin-bottom: 30px;
+                                background-color: #333333;
+                                border-radius: 8px;
+                                padding: 20px;
+                                border-left: 4px solid #667eea;
+                            }}
+                            .section h3 {{
+                                margin-top: 0;
+                                color: #667eea;
+                                font-size: 18px;
+                                font-weight: 600;
+                                margin-bottom: 15px;
+                                display: flex;
+                                align-items: center;
+                            }}
+                            .section h3::before {{
+                                content: '';
+                                width: 8px;
+                                height: 8px;
+                                background-color: #667eea;
+                                border-radius: 50%;
+                                margin-right: 10px;
+                            }}
+                            .info-row {{
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                padding: 8px 0;
+                                border-bottom: 1px solid #404040;
+                            }}
+                            .info-row:last-child {{
+                                border-bottom: none;
+                            }}
+                            .info-label {{
+                                font-weight: 600;
+                                color: #cccccc;
+                                min-width: 120px;
+                            }}
+                            .info-value {{
+                                color: #ffffff;
+                                text-align: right;
+                            }}
+                            .phone-link {{
+                                color: #667eea;
+                                text-decoration: none;
+                                font-weight: 500;
+                                transition: color 0.3s ease;
+                            }}
+                            .phone-link:hover {{
+                                color: #764ba2;
+                                text-decoration: underline;
+                            }}
+                            .total-amount {{
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                color: white;
+                                font-weight: bold;
+                                font-size: 18px;
+                                border-radius: 6px;
+                                padding: 8px 12px;
+                            }}
+                            .footer {{
+                                background-color: #333333;
+                                padding: 20px;
+                                text-align: center;
+                                border-top: 1px solid #404040;
+                            }}
+                            .footer p {{
+                                margin: 0;
+                                color: #cccccc;
+                                font-style: italic;
+                            }}
+                            .date {{
+                                color: #999999;
+                                font-size: 14px;
+                                margin-top: 5px;
+                            }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="header">
+                                <h1>🛍️ New Order Received</h1>
+                                <div class="order-id">Order #{order.pk}</div>
+                                <div class="date">{order.created_at.strftime('%B %d, %Y at %H:%M')}</div>
+                            </div>
+                            
+                            <div class="content">
+                                <div class="section">
+                                    <h3>👤 Customer Information</h3>
+                                    <div class="info-row">
+                                        <span class="info-label">Name:</span>
+                                        <span class="info-value">{order.customer_name}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Email:</span>
+                                        <span class="info-value">{order.customer_email}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Phone:</span>
+                                        <span class="info-value">
+                                            <a href="tel:{order.customer_phone}" class="phone-link">
+                                                📞 {order.customer_phone}
+                                            </a>
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="section">
+                                    <h3>📦 Product Information</h3>
+                                    <div class="info-row">
+                                        <span class="info-label">Product:</span>
+                                        <span class="info-value">{order.article.name}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Category:</span>
+                                        <span class="info-value">{order.article.category.name if order.article.category else 'N/A'}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Quantity:</span>
+                                        <span class="info-value">{order.number}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Size:</span>
+                                        <span class="info-value">{order.size}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Color:</span>
+                                        <span class="info-value">{order.color}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Unit Price:</span>
+                                        <span class="info-value">{order.article.price} DA</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Total Amount:</span>
+                                        <span class="info-value total-amount">{order.total_amount} DA</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="footer">
+                                <p>💬 Please contact the customer to confirm delivery details.</p>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
                     """,
                     "TextPart": f"""
                     New Order Received
