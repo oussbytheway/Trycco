@@ -85,6 +85,27 @@ document.addEventListener('DOMContentLoaded', function() {
         })
     }
     
+    // Enhanced carousel functionality with image viewing
+    const carouselCards = document.querySelectorAll('.product-card[data-product-id]')
+    
+    // Add click event to carousel product images for direct viewing
+    carouselCards.forEach(card => {
+        const productImg = card.querySelector('.product-image')
+        const productName = card.querySelector('.product-name')
+        
+        if (productImg) {
+            // Add click event to image for direct modal opening
+            productImg.addEventListener('click', function() {
+                const imageSrc = this.src
+                const name = productName ? productName.textContent : 'Product'
+                viewImage(imageSrc, name)
+            })
+            
+            // Add cursor pointer style
+            productImg.style.cursor = 'pointer'
+        }
+    })
+    
     // Create image modal if it doesn't exist (for products page)
     function createImageModal() {
         if (document.getElementById('imageModal')) return
@@ -112,6 +133,36 @@ document.addEventListener('DOMContentLoaded', function() {
             closeBtn.addEventListener('click', closeModal)
         }
     }
+
+    // Ensure modal is created when needed
+    function ensureModalExists() {
+        if (!document.getElementById('imageModal')) {
+            const modal = document.createElement('div')
+            modal.id = 'imageModal'
+            modal.className = 'image-modal'
+            modal.innerHTML = `
+                <span class="close">&times;</span>
+                <img class="modal-content" id="modalImage" />
+            `
+            
+            document.body.appendChild(modal)
+            
+            // Add event listeners
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal()
+                }
+            })
+            
+            const closeBtn = modal.querySelector('.close')
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeModal)
+            }
+        }
+    }
+
+    // Call this when page loads to ensure modal exists
+    ensureModalExists()
 
     // Search form enhancement (optional - adds live search functionality)
     const searchForm = document.getElementById('searchForm')
@@ -185,13 +236,16 @@ document.addEventListener('DOMContentLoaded', function() {
             closeModal()
         }
     })
+
+    // Make closeMessage function available globally
+    window.closeMessage = closeMessage
 })
 
 // Global functions that need to be accessible outside the DOMContentLoaded scope
 
-// Image viewing and downloading functions
+// Enhanced image viewing function that works with both product detail and carousel
 function viewImage(imageSrc, productName) {
-    // Create modal if it doesn't exist
+    // Ensure modal exists
     if (!document.getElementById('imageModal')) {
         const modal = document.createElement('div')
         modal.id = 'imageModal'
@@ -204,14 +258,13 @@ function viewImage(imageSrc, productName) {
         
         document.body.appendChild(modal)
         
-        // Add click event to close modal when clicking outside
+        // Add event listeners
         modal.addEventListener('click', function(e) {
             if (e.target === this) {
                 closeModal()
             }
         })
         
-        // Add click event to close button
         const closeBtn = modal.querySelector('.close')
         if (closeBtn) {
             closeBtn.addEventListener('click', closeModal)
@@ -221,20 +274,27 @@ function viewImage(imageSrc, productName) {
     const modal = document.getElementById('imageModal')
     const modalImg = document.getElementById('modalImage')
     
-    // Ensure the background color is set (in case modal already exists)
+    // Set background color
     modal.style.backgroundColor = 'rgba(37, 37, 39, 0.9)'
     
-    // Handle both old and new calling patterns
     if (imageSrc) {
         modal.style.display = 'block'
         modalImg.src = imageSrc
         modalImg.alt = productName || 'Product Image'
+        
+        // Add loading transition for better UX
+        modalImg.onload = function() {
+            this.style.opacity = '1'
+        }
+        modalImg.style.opacity = '0'
+        modalImg.style.transition = 'opacity 0.3s ease'
     } else {
-        // Legacy support: get image from productImage element
+        // Fallback for legacy calls from product detail page
         const productImg = document.getElementById('productImage')
         if (productImg) {
             modal.style.display = 'block'
             modalImg.src = productImg.src
+            modalImg.alt = 'Product Image'
         }
     }
 }
@@ -251,7 +311,7 @@ function downloadImage() {
     if (productImg) {
         const link = document.createElement('a')
         link.href = productImg.src
-        link.download = '{{ product.name|slugify }}.jpg'
+        link.download = 'product-image.jpg'
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -261,7 +321,7 @@ function downloadImage() {
 // Quantity functions
 function decreaseQuantity() {
     const quantityInput = document.getElementById('quantity')
-    if (quantityInput.value > 1) {
+    if (quantityInput && quantityInput.value > 1) {
         quantityInput.value = parseInt(quantityInput.value) - 1
         updateSummary()
     }
@@ -269,8 +329,10 @@ function decreaseQuantity() {
 
 function increaseQuantity() {
     const quantityInput = document.getElementById('quantity')
-    quantityInput.value = parseInt(quantityInput.value) + 1
-    updateSummary()
+    if (quantityInput) {
+        quantityInput.value = parseInt(quantityInput.value) + 1
+        updateSummary()
+    }
 }
 
 // Color and size selection functions
@@ -281,9 +343,11 @@ function selectColor(element) {
     element.classList.add('selected')
 
     const colorSelect = document.getElementById('colorSelect')
-    const colorValue = element.getAttribute('data-color')
-    colorSelect.value = colorValue
-    updateSummary()
+    if (colorSelect) {
+        const colorValue = element.getAttribute('data-color')
+        colorSelect.value = colorValue
+        updateSummary()
+    }
 }
 
 function selectSize(element) {
@@ -293,44 +357,54 @@ function selectSize(element) {
     element.classList.add('selected')
 
     const sizeSelect = document.getElementById('sizeSelect')
-    const sizeValue = element.getAttribute('data-size')
-    sizeSelect.value = sizeValue
-    updateSummary()
+    if (sizeSelect) {
+        const sizeValue = element.getAttribute('data-size')
+        sizeSelect.value = sizeValue
+        updateSummary()
+    }
 }
 
 // Update order summary
 function updateSummary() {
-    const quantity = document.getElementById('quantity').value
-    const size = document.getElementById('sizeSelect').value
-    const color = document.getElementById('colorSelect').value
-    const price = document.getElementById('productPrice').getAttribute('data-price')
+    const quantity = document.getElementById('quantity')
+    const size = document.getElementById('sizeSelect')
+    const color = document.getElementById('colorSelect')
+    const price = document.getElementById('productPrice')
 
-    document.getElementById('summaryQuantity').textContent = quantity
-    document.getElementById('summarySize').textContent = size
-    document.getElementById('summaryColor').textContent = color
-    document.getElementById('summaryTotal').textContent = price * quantity + ' DA'
+    if (quantity && size && color && price) {
+        const quantityValue = quantity.value
+        const sizeValue = size.value
+        const colorValue = color.value
+        const priceValue = price.getAttribute('data-price')
+
+        const summaryQuantity = document.getElementById('summaryQuantity')
+        const summarySize = document.getElementById('summarySize')
+        const summaryColor = document.getElementById('summaryColor')
+        const summaryTotal = document.getElementById('summaryTotal')
+
+        if (summaryQuantity) summaryQuantity.textContent = quantityValue
+        if (summarySize) summarySize.textContent = sizeValue
+        if (summaryColor) summaryColor.textContent = colorValue
+        if (summaryTotal) summaryTotal.textContent = priceValue * quantityValue + ' DA'
+    }
 }
 
-// Quick view functionality - Uses viewImage to show image modal
+// Enhanced quick view functionality for carousel items
 function quickView(productId) {
     console.log('Quick view requested for product:', productId)
     
-    // Find the product card
     const productCard = document.querySelector(`[data-product-id="${productId}"]`)
     if (!productCard) {
         console.error('Product card not found for ID:', productId)
         return
     }
     
-    // Get the product image and name
     const productImg = productCard.querySelector('.product-image')
     const productName = productCard.querySelector('.product-name')
     
     if (productImg) {
         const imageSrc = productImg.src
         const name = productName ? productName.textContent : 'Product'
-        
-        // Use the existing viewImage function
         viewImage(imageSrc, name)
     } else {
         console.log('No image found for product:', productId)
